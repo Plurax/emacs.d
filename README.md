@@ -135,7 +135,8 @@ $ cask install
 
 # Setting up Emacs
 
-Replace the `init.el` file from the step above with the `/.emacs.d/init.el` file of this repo.
+Replace the `init.el` file from the step above with the `/.emacs.d/init.el` file of this repo. 
+The custom.el contains API key settings etc. and is not part of this repo. Thus you need to configure it for your own.
 
 ## Trying it all out
 
