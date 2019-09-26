@@ -710,7 +710,7 @@
 (defun org-my-toggle-agenda-file-set ()
   "Switch between private and work org file sets."
   (interactive)
- (if (equal org-agenda-files "~/.emacs.d/agenda_files_work")
+ (if (equal org-agenda-files "~/.emacs.d/.agenda_files_work")
      (setq org-agenda-files "~/.emacs.d/.agenda_files_home")
    (setq org-agenda-files "~/.emacs.d/.agenda_files_work"))
  (message "Using %s" org-agenda-files))
