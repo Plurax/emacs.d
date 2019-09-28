@@ -706,13 +706,20 @@
 (provide 'init)
 ;;; init.el ends here
 
+(defcustom chuhlich/org-agenda-file-sets nil
+  "My personal set of agenda file configurations to allow flexibility in agenda loading"
+  :type '(alist))
+
+(defcustom chuhlich/org-agenda-context nil
+  "My personal set of agenda file configurations to allow flexibility in agenda loading"
+  :type '(string))
+
 ;; This is used to switch between work and private TODO contexts
 (defun org-my-toggle-agenda-file-set ()
-  "Switch between private and work org file sets."
+  "Switch between different org file sets."
   (interactive)
- (if (equal org-agenda-files "~/.emacs.d/.agenda_files_work")
-     (setq org-agenda-files "~/.emacs.d/.agenda_files_home")
-   (setq org-agenda-files "~/.emacs.d/.agenda_files_work"))
+  (setq chuhlich/org-agenda-context (read-string "Which context: "))
+  (setq org-agenda-files (cdr (assoc chuhlich/org-agenda-context chuhlich/org-agenda-file-sets)))
  (message "Using %s" org-agenda-files))
 
 ;; The custom.el holds all customized variables (e.g. account infos or API keys)

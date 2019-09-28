@@ -98,6 +98,7 @@
 
 ;; Language major modes
 (depends-on "cmake-mode")
+(depends-on "cmake-font-lock" :git "https://github.com/Lindydancer/cmake-font-lock.git")
 (depends-on "dockerfile-mode")
 (depends-on "markdown-mode")
 (depends-on "plantuml-mode")
