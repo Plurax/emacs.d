@@ -119,7 +119,7 @@ This should install Cask in `~/.cask/`. Make sure to follow the on-success promp
 
 ```bash
 # e.g. in your .bashrc, or whatever shell you're using
-export PATH="/home/dfri/.cask/bin:$PATH"
+export PATH="~/.cask/bin:$PATH"
 ```
 
 # Using this repo for applying the settings
@@ -150,6 +150,18 @@ This command should start emacs with doom theme and modeline. Allowing you to st
 ```bash
 $ emacs &
 ```
+
+## Installing irony-server
+
+Upon first Emacs launch, install the `irony-server`, which provides the `libclang` interface to `irony-mode` (used for `company-irony` / code completion):
+
+```bash
+# In Emacs
+M-x irony-install-server
+# yields a cmake install command -> accept [RET]
+```
+
+A successful installation prompts you with _"`irony-server` installed successfully!"_.
 
 # Contributing
 

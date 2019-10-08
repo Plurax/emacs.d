@@ -737,6 +737,8 @@
   (message "Using %s file set for org-agenda." chuhlich/org-agenda-context))
 
 
+
+
 ;; The custom.el holds all customized variables (e.g. account infos or API keys)
 (setq custom-file "~/Sync/emacsconfig/custom.el")
 (load custom-file)
