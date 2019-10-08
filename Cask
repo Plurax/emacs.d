@@ -1,6 +1,10 @@
 (source gnu)
 (source melpa)
 
+;;  google-translate
+(depends-on "google-translate")
+
+
 ;; eyebrowse
 (depends-on "eyebrowse")
 
