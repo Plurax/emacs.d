@@ -29,7 +29,6 @@ configuration without disclosing my account settings.
 I startet with org-mode around Jan 2019 so this might be a floating setup.
 For my small projects its nevertheless working...
 
-This is my emacs setup consisting of several collected snippets and mainly based on dfribs setup.
 This is currently running on Ubuntu with emacs 26.2
 
 The core packages of my setup are:
@@ -78,7 +77,7 @@ $ sudo apt-get install clang-7.0 llvm-7.0 libclang-7.0-dev clang-format-7.0
 
 ## ccls
 
-Clone the RTags project; I usually clone open source repos into my `~/opensource` folder:
+Clone the CCLs project; I usually clone open source repos into my `~/opensource` folder:
 
 ```bash
 mkdir ~/opensource
@@ -135,15 +134,21 @@ $ cask install
 
 # Setting up Emacs
 
-Replace the `init.el` file from the step above with the `/.emacs.d/init.el` file of this repo. 
-The custom.el contains API key settings etc. and is not part of this repo. Thus you need to configure it for your own.
+The custom.el contains API key settings etc. and is not part of this repo. Thus you need to configure it for your own. 
+You can use the customize-variable command of emacs for this. You can change the path of the custom settings by editing the corresponding part of init.el:
+
+```elisp
+(setq custom-file "~/Sync/emacsconfig/custom.el")
+(load custom-file)
+```
+
 
 ## Trying it all out
 
-This command should start emacs with doom theme and modeline. Allowing you to start entering emacs world...
+This command should start emacs with doom theme and modeline. Allowing you to start entering emacs world... (The & avoids the shell being blocked by the emacs process)
 
 ```bash
-$ emacs
+$ emacs &
 ```
 
 # Contributing

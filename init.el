@@ -30,6 +30,16 @@
 (cask-initialize)
 
 
+(use-package google-translate
+  :init
+  (setq google-translate-backend-method 'curl)
+  (setq google-translate-default-source-language "de")
+  (setq google-translate-default-target-language "en")
+  (setq google-translate-translation-directions-alist '(("en" . "de") ("de" . "en")))
+  :config
+  (progn
+    (define-key eyebrowse-mode-map (kbd "C-c g t") 'google-translate-smooth-translate)))
+
 ;; I am using 4 eyebrowse setups which I can switch between with F9-F10 - Currently I rename them after startup to EmacsCfg, Dev, Org, Mail
 (use-package eyebrowse
   :ensure t
@@ -199,8 +209,6 @@
     (with-eval-after-load 'projectile
       (setq cmake-ide-project-dir (projectile-project-root))
       (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build")))
-    (setq cmake-ide-compile-command 
-            (concat "cd " cmake-ide-build-dir " && cmake .. && make"))
     (cmake-ide-load-db))
 
   (defun my/switch-to-compilation-window ()
@@ -381,7 +389,8 @@
    '(;; other Babel languages
      (plantuml . t)
      (restclient . t)
-     (python . t)))
+     (python . t)
+     (C . t)))
   (setq org-babel-python-command "python3")
 
   (setq org-todo-keywords
@@ -706,21 +715,27 @@
 (provide 'init)
 ;;; init.el ends here
 
-(defcustom chuhlich/org-agenda-file-sets nil
-  "My personal set of agenda file configurations to allow flexibility in agenda loading"
+(defcustom chuhlich/org-agenda-context-options nil
+  "An a list of different contexts for agenda loading."
   :type '(alist))
 
 (defcustom chuhlich/org-agenda-context nil
-  "My personal set of agenda file configurations to allow flexibility in agenda loading"
+  "The current set key to org-agenda-context-options, which is used for loading the agenda."
   :type '(string))
 
-;; This is used to switch between work and private TODO contexts
-(defun org-my-toggle-agenda-file-set ()
-  "Switch between different org file sets."
+(defun chuhlich/choose-org-context ()
+  "Choose the org agenda context from the alist."
   (interactive)
-  (setq chuhlich/org-agenda-context (read-string "Which context: "))
-  (setq org-agenda-files (cdr (assoc chuhlich/org-agenda-context chuhlich/org-agenda-file-sets)))
- (message "Using %s" org-agenda-files))
+  (setq chuhlich/org-agenda-context 
+        (ivy-read "Describe function: "
+                  (mapcar 'car chuhlich/org-agenda-context-options)
+                  :preselect (ivy-thing-at-point)
+                  :require-match t
+                  :sort t
+                  :caller 'chuhlich/choose-org-context))
+  (setq org-agenda-files (cdr (assoc chuhlich/org-agenda-context chuhlich/org-agenda-context-options)))
+  (message "Using %s file set for org-agenda." chuhlich/org-agenda-context))
+
 
 ;; The custom.el holds all customized variables (e.g. account infos or API keys)
 (setq custom-file "~/Sync/emacsconfig/custom.el")
