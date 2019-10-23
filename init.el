@@ -31,6 +31,7 @@
 
 
 (use-package google-translate
+  :after eyebrowse
   :init
   (setq google-translate-backend-method 'curl)
   (setq google-translate-default-source-language "de")
@@ -673,6 +674,8 @@
 
 (define-key mu4e-headers-mode-map (kbd "C-c c") 'org-mu4e-store-and-capture)
 (define-key mu4e-view-mode-map    (kbd "C-c c") 'org-mu4e-store-and-capture)
+(setq org-mu4e-link-query-in-headers-mode nil
+      org-mu4e-convert-to-html t)
 
 ;rename files when moving
 ;;NEEDED FOR MBSYNC
@@ -715,26 +718,26 @@
 (provide 'init)
 ;;; init.el ends here
 
-(defcustom chuhlich/org-agenda-context-options nil
+(defcustom cu/org-agenda-context-options nil
   "An a list of different contexts for agenda loading."
   :type '(alist))
 
-(defcustom chuhlich/org-agenda-context nil
+(defcustom cu/org-agenda-context nil
   "The current set key to org-agenda-context-options, which is used for loading the agenda."
   :type '(string))
 
-(defun chuhlich/choose-org-context ()
+(defun cu/choose-org-context ()
   "Choose the org agenda context from the alist."
   (interactive)
-  (setq chuhlich/org-agenda-context 
+  (setq cu/org-agenda-context 
         (ivy-read "Describe function: "
-                  (mapcar 'car chuhlich/org-agenda-context-options)
+                  (mapcar 'car cu/org-agenda-context-options)
                   :preselect (ivy-thing-at-point)
                   :require-match t
                   :sort t
-                  :caller 'chuhlich/choose-org-context))
-  (setq org-agenda-files (cdr (assoc chuhlich/org-agenda-context chuhlich/org-agenda-context-options)))
-  (message "Using %s file set for org-agenda." chuhlich/org-agenda-context))
+                  :caller 'cu/choose-org-context))
+  (setq org-agenda-files (cdr (assoc cu/org-agenda-context cu/org-agenda-context-options)))
+  (message "Using %s file set for org-agenda." cu/org-agenda-context))
 
 
 
