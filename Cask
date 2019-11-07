@@ -34,6 +34,8 @@
 (depends-on "ob-restclient" :git "https://github.com/alf/ob-restclient.el.git")
 
 (depends-on "org-gcal")
+(depends-on "org-msg")
+(depends-on "emacs-htmlize")
 
 (depends-on "org-bullets")
 (depends-on "org-trello")

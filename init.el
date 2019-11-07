@@ -88,6 +88,27 @@
 ;; OpenAPI
 ;(require 'openapi-yaml-mode)
 
+(use-package doom-themes
+  :after doom-mode-line
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  ;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each theme
+  ;; may have their own settings.
+  ;; loading the theme is made in custom.el
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; or for treemacs users
+  (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
+  (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+
+(use-package doom-modeline
+  :ensure t
+  :hook (after-init . doom-modeline-mode))
+
 
 (use-package treemacs
   :ensure t
@@ -381,6 +402,7 @@
 ;; org-mode
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (use-package org
+  :ensure org-plus-contrib
   :bind (("C-c M" . 'org-agenda-view))
   :config
   ;; babel & PlantUML
@@ -388,9 +410,9 @@
   (org-babel-do-load-languages
    'org-babel-load-languages
    '(;; other Babel languages
-     (plantuml . t)
      (restclient . t)
      (python . t)
+     (shell . t)
      (C . t)))
   (setq org-babel-python-command "python3")
 
@@ -427,6 +449,18 @@
   (defun my-org-timer-done ()
     (shell-command "canberra-gtk-play --file=/usr/share/sounds/gnome/default/alerts/glass.ogg"))
   )
+
+(use-package htmlize
+  :config
+  (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil")
+  (setq org-msg-startup "hidestars indent inlineimages")
+  (setq org-msg-greeting-fmt "\nHi %s,\n\n")
+  (setq org-msg-greeting-fmt-mailto t)
+  )
+
+(use-package org-msg
+  :after htmlize)
+
 
 (use-package org-gcal
   :ensure t
@@ -557,29 +591,8 @@
 ;; Themes & visual behaviour
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(require 'doom-themes)
+;(require 'doom-themes)
 
-;; Global settings (defaults)
-(setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-      doom-themes-enable-italic t) ; if nil, italics is universally disabled
-
-;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each theme
-;; may have their own settings.
-(load-theme 'doom-one t)
-
-;; Enable flashing mode-line on errors
-(doom-themes-visual-bell-config)
-
-;; or for treemacs users
-(setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
-(doom-themes-treemacs-config)
-
-;; Corrects (and improves) org-mode's native fontification.
-(doom-themes-org-config)
-
-(use-package doom-modeline
-  :ensure t
-  :hook (after-init . doom-modeline-mode))
   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; The End
@@ -739,7 +752,8 @@
   (setq org-agenda-files (cdr (assoc cu/org-agenda-context cu/org-agenda-context-options)))
   (message "Using %s file set for org-agenda." cu/org-agenda-context))
 
-
+(defun cu/org-confirm-babel-evaluate (lang body)
+  (not (member lang '("restclient" "shell"))))
 
 
 ;; The custom.el holds all customized variables (e.g. account infos or API keys)
