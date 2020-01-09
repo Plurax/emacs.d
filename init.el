@@ -12,6 +12,8 @@
    )
 ;(add-hook 'server-switch-hook 'px-raise-frame-and-give-focus)
 
+(global-set-key (kbd "M-<f11>") 'toggle-frame-fullscreen)
+
 
 (defadvice raise-frame (after make-it-work (&optional frame) activate)
     "Work around some bug? in raise-frame/Emacs/GTK/Metacity/something.
@@ -21,14 +23,12 @@
      "wmctrl" nil nil nil "-i" "-R"
      (frame-parameter (or frame (selected-frame)) 'outer-window-id)))
 (add-hook 'server-switch-hook 'raise-frame)
-
-
+	
 
 ;; -------------------------------------------------------------------------- ;;
 ;; cask - packet management
 (require 'cask "~/.cask/cask.el")
 (cask-initialize)
-
 
 (use-package google-translate
   :after eyebrowse
@@ -53,7 +53,8 @@
             (define-key eyebrowse-mode-map (kbd "<f12>") 'eyebrowse-switch-to-window-config-1)
             (define-key eyebrowse-mode-map (kbd "<f11>") 'eyebrowse-switch-to-window-config-2)
             (define-key eyebrowse-mode-map (kbd "<f10>") 'eyebrowse-switch-to-window-config-3)
-            (define-key eyebrowse-mode-map (kbd "<f9>") 'eyebrowse-switch-to-window-config-4))
+            (define-key eyebrowse-mode-map (kbd "<f9>") 'eyebrowse-switch-to-window-config-4)
+            (define-key eyebrowse-mode-map (kbd "<f8>") 'eyebrowse-switch-to-window-config-5))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -79,7 +80,81 @@
 (set-scroll-bar-mode nil)
 
 ;; mqtt mode
-(use-package mqtt-mode)
+(use-package mqttclient-mode
+  :mode (("\\.mqtt\\'" . mqttclient-mode)
+         ))
+
+;; go
+(use-package go-mode)
+(use-package company)
+(use-package company-go
+  :after company-go)
+
+(use-package go-projectile)
+
+;; tide (js)
+(use-package typescript-mode)
+(use-package tide
+  :ensure t
+  :after (typescript-mode company flycheck)
+  :hook ((typescript-mode . tide-setup)
+         (typescript-mode . tide-hl-identifier-mode)
+         (before-save . tide-format-before-save)))
+
+
+; pkg go installation
+(setq exec-path (append '("/usr/local/go/bin") exec-path))
+(setenv "PATH" (concat "/usr/local/go/bin:" (getenv "PATH")))
+
+
+(defun my-go-mode-hook ()
+      (setq tab-width 2 indent-tabs-mode 1)
+      ; eldoc shows the signature of the function at point in the status bar.
+      (go-eldoc-setup)
+      (local-set-key (kbd "M-.") #'godef-jump)
+      (add-hook 'before-save-hook 'gofmt-before-save)
+      (setq exec-path (append '("/usr/local/go/bin") exec-path))
+
+      ; extra keybindings from https://github.com/bbatsov/prelude/blob/master/modules/prelude-go.el
+      (let ((map go-mode-map))
+        (define-key map (kbd "C-c a") 'go-test-current-project) ;; current package, really
+        (define-key map (kbd "C-c m") 'go-test-current-file)
+        (define-key map (kbd "C-c .") 'go-test-current-test)
+        (define-key map (kbd "C-c b") 'go-run)))
+(add-hook 'go-mode-hook 'my-go-mode-hook)
+(add-hook 'go-mode-hook #'lsp)
+
+; Use projectile-test-project in place of 'compile'; assign whatever key you want.
+;(global-set-key [f9] 'projectile-test-project)
+
+;; Confluence mode
+(use-package confluence
+  :config
+  (setq confluence-url "http://confluence.tarent.de/rpc/xmlrpc"))
+
+; "projectile" recognizes git repos (etc) as "projects" and changes settings
+; as you switch between them. 
+(projectile-global-mode 1)
+(require 'go-projectile)
+(go-projectile-tools-add-path)
+(setq gofmt-command (concat go-projectile-tools-path "/bin/gofmt"))
+
+; "company" is auto-completion
+(add-hook 'go-mode-hook (lambda ()
+                          (company-mode)
+                          (set (make-local-variable 'company-backends) '(company-go))))
+
+; gotest defines a better set of error regexps for go tests, but it only
+; enables them when using its own functions. Add them globally for use in
+(require 'compile)
+(require 'gotest)
+(dolist (elt go-test-compilation-error-regexp-alist-alist)
+  (add-to-list 'compilation-error-regexp-alist-alist elt))
+(defun prepend-go-compilation-regexps ()
+  (dolist (elt (reverse go-test-compilation-error-regexp-alist))
+    (add-to-list 'compilation-error-regexp-alist elt t)))
+(add-hook 'go-mode-hook 'prepend-go-compilation-regexps)
+
 
 ;; Gradle
 (use-package gradle-mode)
@@ -128,6 +203,7 @@
 (global-hl-line-mode 0)
 
 (use-package lsp-ui
+  :after (lsp)
     :ensure t
     :config
     (setq lsp-ui-sideline-ignore-duplicate t)
@@ -228,10 +304,12 @@
   :preface
   (defun my/cmake-ide-find-project ()
     "Finds the directory of the project for cmake-ide."
-    (with-eval-after-load 'projectile
-      (setq cmake-ide-project-dir (projectile-project-root))
-      (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build")))
-    (cmake-ide-load-db))
+    (condition-case nil
+        (when (projectile-verify-file "CMakeLists.txt")
+          (with-eval-after-load 'projectile
+            (setq cmake-ide-project-dir (projectile-project-root))
+            (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build")))
+          (cmake-ide-load-db))))
 
   (defun my/switch-to-compilation-window ()
     "Switches to the *compilation* buffer after compilation."
@@ -239,6 +317,18 @@
   :bind ([remap comment-region] . cmake-ide-compile)
   :init (cmake-ide-setup)
   :config (advice-add 'cmake-ide-compile :after #'my/switch-to-compilation-window))
+
+
+; from enberg on #emacs
+(setq compilation-finish-function
+  (lambda (buf str)
+    (if (null (string-match ".*exited abnormally.*" str))
+        ;;no errors, make the compilation window go away in a few seconds
+        (progn
+          (run-at-time
+           "2 sec" nil 'delete-windows-on
+           (get-buffer-create "*platformio-compilation*"))
+          (message "No Compilation Errors!")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; flycheck-mode
@@ -295,7 +385,8 @@
 ;; also toggle on auto-newline and hungry delete minor modes
 (defun my-c++-mode-hook ()
   (c-set-style "google")        ; use my-style defined above
-  (auto-fill-mode))
+  (auto-fill-mode)
+  (platformio-conditionally-enable))
 
 (add-hook 'c++-mode-hook 'my-c++-mode-hook)
 
@@ -413,9 +504,9 @@
      (restclient . t)
      (python . t)
      (shell . t)
-     (C . t)))
+     (C . t)
+     (latex . t)))
   (setq org-babel-python-command "python3")
-
   (setq org-todo-keywords
         '((sequence "TODO" "ONGOING" "WAITING" "|" "DONE" "DELEGATED" "CANCELED")))
   ;; automatically call minor mode for trello boards
@@ -450,17 +541,7 @@
     (shell-command "canberra-gtk-play --file=/usr/share/sounds/gnome/default/alerts/glass.ogg"))
   )
 
-(use-package htmlize
-  :config
-  (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil")
-  (setq org-msg-startup "hidestars indent inlineimages")
-  (setq org-msg-greeting-fmt "\nHi %s,\n\n")
-  (setq org-msg-greeting-fmt-mailto t)
-  )
-
-(use-package org-msg
-  :after htmlize)
-
+(use-package org-vcard)
 
 (use-package org-gcal
   :ensure t
@@ -472,6 +553,9 @@
 
 (use-package org-trello)
 (use-package elmine)
+
+(require 'org-protocol)
+(use-package org-protocol-capture-html)
 
 
 (use-package helm
@@ -608,6 +692,9 @@
 (add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
 (setq TeX-source-correlate-method 'synctex)
 
+(add-to-list 'org-latex-packages-alist
+             '("" "tikz" t))
+
 (if (require 'dbus "dbus" t)
     (progn
       ;; universal time, need by evince
@@ -690,6 +777,7 @@
 (setq org-mu4e-link-query-in-headers-mode nil
       org-mu4e-convert-to-html t)
 
+
 ;rename files when moving
 ;;NEEDED FOR MBSYNC
 (setq mu4e-change-filenames-when-moving t)
@@ -753,7 +841,11 @@
   (message "Using %s file set for org-agenda." cu/org-agenda-context))
 
 (defun cu/org-confirm-babel-evaluate (lang body)
-  (not (member lang '("restclient" "shell"))))
+  "Do not ask for confirmation on code execution in org BODY for LANG restclient."
+  (not (member lang '("restclient" "shell" "latex"))))
+
+(setq irfc-assoc-mode t)
+(setq irfc-directory "/home/chuhlich/opensource/RFCs")
 
 
 ;; The custom.el holds all customized variables (e.g. account infos or API keys)

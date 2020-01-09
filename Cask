@@ -12,9 +12,25 @@
 (depends-on "cask")
 (depends-on "cask-mode")
 
+;; Confluence
+(depends-on "confluence")
+
+
 ;; gradle
 (depends-on "groovy-mode")
 (depends-on "gradle-mode")
+
+;; go
+(depends-on "go-mode")
+(depends-on "gotest")
+(depends-on "company-go")
+
+;; js
+(depends-on "tide")
+(depends-on "typescript-mode")
+
+;; needed for path changes
+(depends-on "go-projectile")
 
 ;; openAPI
 (depends-on "yaml-mode")
@@ -27,6 +43,8 @@
 
 ;; org
 (source org)
+(depends-on "org-protocol-capture-html" :git "https://github.com/alphapapa/org-protocol-capture-html.git")
+(depends-on "org-vcard")
 (depends-on "org-plus-contrib" "9.0")
 (depends-on "helm")
 (depends-on "org-clock-convenience")
@@ -35,7 +53,6 @@
 
 (depends-on "org-gcal")
 (depends-on "org-msg")
-(depends-on "emacs-htmlize")
 
 (depends-on "org-bullets")
 (depends-on "org-trello")
@@ -50,7 +67,7 @@
 (depends-on "adoc-mode")
 
 ;;MQTT
-(depends-on "mqtt-mode")
+(depends-on "mqttclient-mode" :git "https://github.com/Plurax/mqttclient-mode")
 
 ;; PlatformIO
 (depends-on "platformio-mode")
@@ -148,3 +165,4 @@
 
 ;; Latex
 (depends-on "auctex")
+(depends-on "ox-latex")
