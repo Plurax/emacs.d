@@ -5,6 +5,13 @@
 (depends-on "google-translate")
 
 
+;; irfc mode for visiting rfcs
+(depends-on "irfc"
+            :git "https://github.com/yskkin/irfc.git")
+
+;; toggl
+(depends-on "org-toggl" :git "https://github.com/mbork/org-toggl.git")
+
 ;; eyebrowse
 (depends-on "eyebrowse")
 
@@ -50,6 +57,7 @@
 (depends-on "org-clock-convenience")
 (depends-on "epresent")
 (depends-on "ob-restclient" :git "https://github.com/alf/ob-restclient.el.git")
+(depends-on "ob-go")
 
 (depends-on "org-gcal")
 (depends-on "org-msg")
@@ -82,6 +90,7 @@
 
 (depends-on "lsp-mode")
 (depends-on "lsp-ui")
+(depends-on "lsp-treemacs")
 
 
 (depends-on "lsp-java")
@@ -162,7 +171,3 @@
 
 ;; Multiple cursors (mirror-editing at several lines at once)
 ;(depends-on "multiple-cursors")
-
-;; Latex
-(depends-on "auctex")
-(depends-on "ox-latex")
