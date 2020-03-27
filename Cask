@@ -11,9 +11,19 @@
 
 ;; toggl
 (depends-on "org-toggl" :git "https://github.com/mbork/org-toggl.git")
+(depends-on "org-journal")
+;(depends-on "org-reveal" :git "https://github.com/yjwen/org-reveal.git")
+(depends-on "ox-reveal")
+
 
 ;; eyebrowse
 (depends-on "eyebrowse")
+
+;; SLIME for emacs lisp interaction mode (needed by org-babel lisp)
+(depends-on "slime")
+
+;; Docker
+(depends-on "docker")
 
 ;; Cask
 (depends-on "cask")
@@ -21,6 +31,8 @@
 
 ;; Confluence
 (depends-on "confluence")
+
+(depends-on "kill-ring-search")
 
 
 ;; gradle
@@ -31,6 +43,10 @@
 (depends-on "go-mode")
 (depends-on "gotest")
 (depends-on "company-go")
+
+;; json linter
+(depends-on "json-mode")
+(depends-on "flymake-json" :git "https://github.com/purcell/flymake-json.git")
 
 ;; js
 (depends-on "tide")
@@ -59,16 +75,20 @@
 (depends-on "ob-restclient" :git "https://github.com/alf/ob-restclient.el.git")
 (depends-on "ob-go")
 
+(depends-on "orgmine")
+(depends-on "elmine")
+
+;; calfw
+(depends-on "calfw")
+(depends-on "calfw-cal")
+(depends-on "calfw-org")
+
 (depends-on "org-gcal")
 (depends-on "org-msg")
 
 (depends-on "org-bullets")
 (depends-on "org-trello")
 (depends-on "org-jira")
-(depends-on "elmine")
-;(depends-on "orgmine")
-;            :git "https://github.com/kametoku/orgmine.git"
-;            :branch "master")
 
 
 ; ASCII doc

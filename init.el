@@ -30,6 +30,26 @@
 (require 'cask "~/.cask/cask.el")
 (cask-initialize)
 
+
+;; slime for lisp interaction in org-babel
+(use-package slime
+  :init
+  ;; Set your lisp system and, optionally, some contribs
+  (setq inferior-lisp-program "/opt/sbcl/bin/sbcl")
+  (setq slime-contribs '(slime-fancy))
+  )
+
+;; Docker
+(use-package docker
+  :ensure t
+  :bind ("C-c d" . docker))
+
+;; Automatically load irfc mode when opening an rfc txt file
+(setq magic-mode-alist
+  (append (list  
+       '("^\n\n\n\n\n\n.*\nRequest for Comments: " . irfc-mode))
+          magic-mode-alist))
+
 (use-package google-translate
   :after eyebrowse
   :init
@@ -40,6 +60,54 @@
   :config
   (progn
     (define-key eyebrowse-mode-map (kbd "C-c g t") 'google-translate-smooth-translate)))
+
+;; toggl
+(use-package org-toggl
+  :after org
+  :config
+  (toggl-get-projects)
+  (add-hook 'org-mode-hook #'org-toggl-integration-mode)
+  (define-key org-mode-map (kbd "C-c C-x s") 'org-toggl-set-project))
+
+
+(use-package calfw
+  :bind (("C-c A" . my-calendar)
+         :map cfw:calendar-mode-map
+         ("M-n" . cfw:navi-next-month-command)
+         ("M-p" . cfw:navi-previous-month-command)
+         ("j"   . cfw:navi-goto-date-command)
+         ("g"   . cfw:refresh-calendar-buffer))
+  :commands cfw:open-calendar-buffer
+  :functions (cfw:open-calendar-buffer
+              cfw:refresh-calendar-buffer
+              cfw:org-create-source
+              cfw:cal-create-source)
+  :preface
+  (defun my-calendar ()
+    (interactive)
+    (let ((buf (get-buffer "*cfw-calendar*")))
+      (if buf
+          (pop-to-buffer buf nil)
+        (cfw:open-calendar-buffer
+         :contents-sources
+         (list (cfw:org-create-source "Dark Blue")
+               (cfw:cal-create-source "Dark Orange"))
+         :view 'two-weeks)
+        (setq-local org-agenda-files org-agenda-files))))
+  :config
+  (require 'calfw-cal)
+  (use-package calfw-org
+    :config
+    (setq cfw:org-agenda-schedule-args '(:deadline :timestamp :sexp)))
+  (setq cfw:fchar-junction         ?╋
+        cfw:fchar-vertical-line    ?┃
+        cfw:fchar-horizontal-line  ?━
+        cfw:fchar-left-junction    ?┣
+        cfw:fchar-right-junction   ?┫
+        cfw:fchar-top-junction     ?┯
+        cfw:fchar-top-left-corner  ?┏
+        cfw:fchar-top-right-corner ?┓))
+
 
 ;; I am using 4 eyebrowse setups which I can switch between with F9-F10 - Currently I rename them after startup to EmacsCfg, Dev, Org, Mail
 (use-package eyebrowse
@@ -54,7 +122,8 @@
             (define-key eyebrowse-mode-map (kbd "<f11>") 'eyebrowse-switch-to-window-config-2)
             (define-key eyebrowse-mode-map (kbd "<f10>") 'eyebrowse-switch-to-window-config-3)
             (define-key eyebrowse-mode-map (kbd "<f9>") 'eyebrowse-switch-to-window-config-4)
-            (define-key eyebrowse-mode-map (kbd "<f8>") 'eyebrowse-switch-to-window-config-5))
+            (define-key eyebrowse-mode-map (kbd "<f8>") 'eyebrowse-switch-to-window-config-5)
+            (define-key eyebrowse-mode-map (kbd "<f7>") 'eyebrowse-switch-to-window-config-6))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -101,6 +170,8 @@
          (typescript-mode . tide-hl-identifier-mode)
          (before-save . tide-format-before-save)))
 
+(use-package json-mode)
+(use-package flymake-json)
 
 ; pkg go installation
 (setq exec-path (append '("/usr/local/go/bin") exec-path))
@@ -137,7 +208,7 @@
 (projectile-global-mode 1)
 (require 'go-projectile)
 (go-projectile-tools-add-path)
-(setq gofmt-command (concat go-projectile-tools-path "/bin/gofmt"))
+(setq gofmt-command (concat go-projectile-tools-path "gofmt"))
 
 ; "company" is auto-completion
 (add-hook 'go-mode-hook (lambda ()
@@ -202,21 +273,32 @@
 ;; don't use global line highlight mode
 (global-hl-line-mode 0)
 
-(use-package lsp-ui
-  :after (lsp)
-    :ensure t
-    :config
-    (setq lsp-ui-sideline-ignore-duplicate t)
-    (add-hook 'lsp-mode-hook 'lsp-ui-mode)
-    )
-(use-package lsp-mode
-  :hook (prog-mode . lsp))
 
-(use-package company-lsp)
+;; (use-package lsp-ui
+;;   :after (lsp)
+;;     :ensure t
+;;     :config
+;;     (setq lsp-ui-sideline-ignore-duplicate t)
+;;     (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+;;     )
+;; (use-package lsp-mode
+;;   :hook (prog-mode . lsp))
+
+;; (use-package company-lsp)
+
+
+(use-package lsp-mode
+  :commands lsp
+  :init
+  (setq lsp-keymap-prefix "s-c"))
+(use-package lsp-ui :commands lsp-ui-mode)
+(use-package company-lsp :commands company-lsp)
 
 (use-package lsp-java
   :config (add-hook 'java-mode-hook #'lsp)
   )
+
+(use-package lsp-treemacs)
 
 ;; supress welcome screen
 (setq inhibit-startup-message t)
@@ -289,7 +371,9 @@
   (projectile-project-root-files-top-down-recurring
    (append '("compile_commands.json" ".ccls")
            projectile-project-root-files-top-down-recurring))
-  :config (push ".ccls-cache" projectile-globally-ignored-directories))
+  :config (push ".ccls-cache" projectile-globally-ignored-directories)
+  :hook ((c-mode c++-mode objc-mode cuda-mode) .
+         (lambda () (require 'ccls) (lsp))))
 
 (use-package cmake-mode
   :mode ("CMakeLists\\.txt\\'" "\\.cmake\\'"))
@@ -468,13 +552,13 @@
   (drag-stuff-define-keys)
   )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; expand region
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(use-package expand-region
-  ;; Overwrite binding to insert non-graphic characters (I never use that).
-  :bind ("C-q" . 'er/expand-region)
-  )
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;; expand region
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (use-package expand-region
+;;   ;; Overwrite binding to insert non-graphic characters (I never use that).
+;;   :bind ("C-q" . 'er/expand-region)
+;;   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; idle highlight mode
@@ -492,7 +576,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; org-mode
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(use-package org
+  (use-package org
   :ensure org-plus-contrib
   :bind (("C-c M" . 'org-agenda-view))
   :config
@@ -505,6 +589,8 @@
      (python . t)
      (shell . t)
      (C . t)
+     (lisp . t)
+     (go . t)
      (latex . t)))
   (setq org-babel-python-command "python3")
   (setq org-todo-keywords
@@ -519,8 +605,14 @@
   (setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
   (setq org-refile-use-outline-path 'file)
   (setq org-outline-path-complete-in-steps nil)
-
+  (add-hook 'org-clock-in-hook #'my-check-toggl-project-hook #'save-buffer)
+  (add-hook 'org-clock-out-hook #'save-buffer)
+  
   (add-hook 'org-timer-done-hook 'my-org-timer-done)
+
+  (defun my-check-toggl-project-hook ()
+    (when (eq (org-entry-get nil "toggl-project") nil)
+      (call-interactively 'org-toggl-set-project)))
 
   (defun my-org-agenda-skip-all-siblings-but-first ()
     "Skip all but the first non-done entry."
@@ -541,7 +633,15 @@
     (shell-command "canberra-gtk-play --file=/usr/share/sounds/gnome/default/alerts/glass.ogg"))
   )
 
+(use-package orgmine
+  :after elmine
+  :config
+  (add-hook 'org-mode-hook
+            (lambda () (if (assoc "om_project" org-file-properties)
+                           (orgmine-mode)))))
+
 (use-package org-vcard)
+(use-package ob-go)
 
 (use-package org-gcal
   :ensure t
@@ -557,6 +657,7 @@
 (require 'org-protocol)
 (use-package org-protocol-capture-html)
 
+(use-package kill-ring-search)
 
 (use-package helm
   :demand t
@@ -598,12 +699,26 @@
   :config
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
+(use-package ox-reveal
+  :init
+  (setq org-reveal-root "/home/chuhlich/opensource/reveal.js"))
+
 (global-set-key (kbd "C-c a") '(lambda (&optional arg) (interactive "P")(org-agenda arg "t")))
 (global-set-key (kbd "C-c s") '(lambda (&optional arg) (interactive "P")(org-switchb)))
 (global-set-key (kbd "C-c c") '(lambda (&optional arg) (interactive "P")(org-capture)))
 
 
-(use-package epresent)
+(use-package epresent
+  :init
+  (local-unset-key (kbd "<f5>"))
+  (local-unset-key (kbd "<f12>")))
+
+
+(use-package irfc
+  :config
+  (setq irfc-assoc-mode t)
+  (setq irfc-directory "/home/chuhlich/opensource/RFCs"))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; IBuffer
@@ -767,9 +882,10 @@
 
 
 ; mu4e Mail client
-(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
 ; mu4e Mails
 (require 'mu4e)
+(require 'mu4e-icalendar)
 (require 'org-mu4e)
 
 (define-key mu4e-headers-mode-map (kbd "C-c c") 'org-mu4e-store-and-capture)
@@ -844,11 +960,13 @@
   "Do not ask for confirmation on code execution in org BODY for LANG restclient."
   (not (member lang '("restclient" "shell" "latex"))))
 
-(setq irfc-assoc-mode t)
-(setq irfc-directory "/home/chuhlich/opensource/RFCs")
-
+;; Little helper - may be add a short cut later...
+(defun show-file-name ()
+  "Show the full path file name in the minibuffer and copy to kill ring."
+  (interactive)
+  (message (buffer-file-name))
+  (kill-new (buffer-file-name)))
 
 ;; The custom.el holds all customized variables (e.g. account infos or API keys)
 (setq custom-file "~/Sync/emacsconfig/custom.el")
 (load custom-file)
-
