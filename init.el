@@ -3,6 +3,8 @@
 ;; This will act like calling C-c within Emacs, but bringing Emacs to scope and youre
 ;; able to add your todo instantly from any other application...
 ;; Assure org-protocol module being active!
+(byte-recompile-directory (expand-file-name "~/.emacs.d") 0)
+
 (server-start)
 (defun px-raise-frame-and-give-focus ()
     (set-mouse-pixel-position (selected-frame) 4 4)
@@ -60,15 +62,6 @@
   :config
   (progn
     (define-key eyebrowse-mode-map (kbd "C-c g t") 'google-translate-smooth-translate)))
-
-;; toggl
-(use-package org-toggl
-  :after org
-  :config
-  (toggl-get-projects)
-  (add-hook 'org-mode-hook #'org-toggl-integration-mode)
-  (define-key org-mode-map (kbd "C-c C-x s") 'org-toggl-set-project))
-
 
 (use-package calfw
   :bind (("C-c A" . my-calendar)
@@ -605,14 +598,8 @@
   (setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
   (setq org-refile-use-outline-path 'file)
   (setq org-outline-path-complete-in-steps nil)
-  (add-hook 'org-clock-in-hook #'my-check-toggl-project-hook #'save-buffer)
-  (add-hook 'org-clock-out-hook #'save-buffer)
   
   (add-hook 'org-timer-done-hook 'my-org-timer-done)
-
-  (defun my-check-toggl-project-hook ()
-    (when (eq (org-entry-get nil "toggl-project") nil)
-      (call-interactively 'org-toggl-set-project)))
 
   (defun my-org-agenda-skip-all-siblings-but-first ()
     "Skip all but the first non-done entry."
@@ -631,7 +618,26 @@
     (string= "TODO" (org-get-todo-state)))
   (defun my-org-timer-done ()
     (shell-command "canberra-gtk-play --file=/usr/share/sounds/gnome/default/alerts/glass.ogg"))
+  (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
   )
+
+
+;; toggl
+(use-package org-toggl
+  :defer 5
+  :config
+  (toggl-get-projects)
+  (org-toggl-integration-mode)
+  (defun my-check-toggl-project-hook ()
+    (when (eq (org-entry-get nil "toggl-project") nil)
+      (call-interactively 'org-toggl-set-project)))
+
+  (add-hook 'org-clock-in-hook 'my-check-toggl-project-hook)
+  (define-key org-mode-map (kbd "C-c C-x s") 'org-toggl-set-project))
+
+(use-package org-journal
+  :defer t)
+
 
 (use-package orgmine
   :after elmine
@@ -646,7 +652,10 @@
 (use-package org-gcal
   :ensure t
   :config
-  (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-fetch) )))
+  (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-fetch) ))
+  (defun new/org-gcal-notify (title mes)
+    (message "org-gcal::%s - %s" title mes))
+  (fset 'org-gcal--notify 'new/org-gcal-notify))
 ;  (add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) )))
 
 ; Wofür war das? ""
@@ -679,17 +688,6 @@
       ( "<f5> u" . helm-ucs)
       ( "<f5> p" . helm-list-emacs-process)
       ( "<f5> x" . helm-M-x))
-  :config (progn
-   	 ;; extend helm for org headings with the clock in action
-   	 (defun dfeich/helm-org-clock-in (marker)
-   	   "Clock into the item at MARKER"
-   	   (with-current-buffer (marker-buffer marker)
-   	     (goto-char (marker-position marker))
-   	     (org-clock-in)))
-   	 (eval-after-load 'helm-org
-   	   '(nconc helm-org-headings-actions
-   		   (list
-   		    (cons "Clock into task" #'dfeich/helm-org-clock-in)))))
   )
 
 (use-package org-jira)

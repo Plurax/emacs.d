@@ -19,9 +19,6 @@
 ;; eyebrowse
 (depends-on "eyebrowse")
 
-;; SLIME for emacs lisp interaction mode (needed by org-babel lisp)
-(depends-on "slime")
-
 ;; Docker
 (depends-on "docker")
 
@@ -73,6 +70,8 @@
 (depends-on "org-clock-convenience")
 (depends-on "epresent")
 (depends-on "ob-restclient" :git "https://github.com/alf/ob-restclient.el.git")
+(depends-on "verb")
+
 (depends-on "ob-go")
 
 (depends-on "orgmine")
