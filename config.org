@@ -1,0 +1,1066 @@
+#+TITLE: My Emacs Configuration
+#+AUTHOR: Christoph Uhlich
+#+EMAIL: christoph@familie-uhlich.de
+#+OPTIONS: num:nil
+#+OPTIONS: creator:chuhlich
+#+OPTIONS: tex:imagemagick
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/setup/theme-readtheorg.setup
+* Visual stuff and global settings
+** Emacs server
+This will start the emacs server to provide interaction with org-protocol
+Create a global shortcut of your choice and call /usr/bin/emacsclient org-protocol://capture?template=t
+This will act like calling C-c within Emacs, but bringing Emacs to scope and youre
+able to add your todo instantly from any other application...
+Assure org-protocol module being active!
+#+begin_src emacs-lisp
+(server-start)
+(defun px-raise-frame-and-give-focus ()
+    (set-mouse-pixel-position (selected-frame) 4 4)
+    (raise-frame selected-frame)
+;    (x-focus-frame (selected-frame))
+    (select-frame-set-input-focus (selected-frame))
+   )
+;(add-hook 'server-switch-hook 'px-raise-frame-and-give-focus)
+
+(defadvice raise-frame (after make-it-work (&optional frame) activate)
+    "Work around some bug? in raise-frame/Emacs/GTK/Metacity/something.
+     Katsumi Yamaoka posted this in
+     http://article.gmane.org/gmane.emacs.devel:39702"
+     (call-process
+     "wmctrl" nil nil nil "-i" "-R"
+     (frame-parameter (or frame (selected-frame)) 'outer-window-id)))
+(add-hook 'server-switch-hook 'raise-frame)
+#+end_src
+** Activate projectile globally
+"projectile" recognizes git repos (etc) as "projects" and changes settings
+as you switch between them. 
+#+begin_src emacs-lisp
+(projectile-global-mode 1)
+#+end_src
+** Add short cut for fullscreen toggle 
+I need this when switching between docked and stand alone mode.
+#+begin_src emacs-lisp
+(global-set-key (kbd "M-<f11>") 'toggle-frame-fullscreen)
+#+end_src
+** comint and Shell modifications
+Changed a default colour to "dodger blue" to make ls colours easier to see.
+#+begin_src emacs-lisp
+(setq ansi-color-names-vector ["black" "red3" "green3" "yellow3" "dodger blue" "olive drab" "cyan3" "gray90"])
+#+end_src
+Prevent inheriting of minibuffer-prompt's face. Gives better shell prompt colors.
+#+begin_src emacs-lisp
+(set-face-attribute 'comint-highlight-prompt nil ':inherit 'unspecified)
+#+end_src
+Prevent having to enter passwords in plain text.
+#+begin_src emacs-lisp
+(setq comint-password-prompt-regexp
+      (concat comint-password-prompt-regexp
+              "\\|^Password .*:\\s *\\'"))
+#+end_src
+Track shell directory when using shell in emacs (by inspecting procfs)
+https://www.emacswiki.org/emacs/ShellDirtrackByProcfs
+#+begin_src emacs-lisp
+(defun track-shell-directory/procfs ()
+  "Write docstring here."
+  (shell-dirtrack-mode 0)
+  (add-hook 'comint-preoutput-filter-functions
+            (lambda (str)
+              (prog1 str
+                (when (string-match comint-prompt-regexp str)
+                  (cd (file-symlink-p
+                       (format "/proc/%s/cwd" (process-id
+                                               (get-buffer-process
+                                                (current-buffer)))))))))
+            nil t))
+(add-hook 'shell-mode-hook (lambda () (setq show-trailing-whitespace nil)))
+(add-hook 'shell-mode-hook 'track-shell-directory/procfs)
+#+end_src
+Set scroll behaviour similar to linux shell.
+http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of-bash-keyboard-bindings
+#+begin_src emacs-lisp
+(remove-hook 'comint-output-filter-functions
+             'comint-postoutput-scroll-to-bottom)
+#+end_src
+** Automatically load irfc mode when opening an rfc txt file 
+#+begin_src emacs-lisp
+(setq magic-mode-alist
+  (append (list  
+       '("^\n\n\n\n\n\n.*\nRequest for Comments: " . irfc-mode))
+          magic-mode-alist))
+#+end_src
+** TAB settings
+#+begin_src emacs-lisp
+;; set tabs to indent as white spaces and set default tab width to 4 white spaces
+(setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
+;(setq-default indent-line-function 'insert-tab)
+
+;; setup: M-y saves the new yank to the clipboard.
+(setq yank-pop-change-selection t)
+
+(show-paren-mode 1)
+(setq column-number-mode t)
+
+;; minimalistic Emacs at startup
+(menu-bar-mode 0)
+(tool-bar-mode 0)
+(set-scroll-bar-mode nil)
+#+end_src
+** Themes and icons
+*** doom-themes
+  #+begin_src emacs-lisp
+(use-package doom-themes
+  :after doom-mode-line
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  ;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each theme
+  ;; may have their own settings.
+  ;; loading the theme is made in custom.el
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; or for treemacs users
+  (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
+  (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+
+  #+end_src
+*** doom-modeline
+  #+begin_src emacs-lisp
+(use-package doom-modeline
+  :ensure t
+  :hook (after-init . doom-modeline-mode))
+
+
+  #+end_src
+*** treemacs
+  #+begin_src emacs-lisp
+(use-package treemacs
+  :ensure t
+  :defer t)
+
+
+  #+end_src
+*** treemacs-icons-dired
+  #+begin_src emacs-lisp
+(use-package treemacs-icons-dired
+  :after treemacs dired
+  :ensure t
+  :config (treemacs-icons-dired-mode))
+
+  #+end_src
+*** treemacs-magit
+  #+begin_src emacs-lisp
+(use-package treemacs-magit
+  :after treemacs magit
+  :ensure t)
+
+;; don't use global line highlight mode
+(global-hl-line-mode 0)
+
+  #+end_src
+** default-text-scale
+ #+begin_src emacs-lisp
+(use-package default-text-scale)
+ #+end_src
+** eyebrowse
+ I am using 6 eyebrowse views which I can switch between with F7-F12 - Currently I rename them after startup to Misc, Docs, Comm, Dev, Org, Mail.
+ #+begin_src emacs-lisp
+(use-package eyebrowse
+  :ensure t
+  :init
+  (setq eyebrowse-keymap-prefix (kbd "C-c M-e"))
+  (global-unset-key (kbd "C-c C-w"))
+  :config
+  (eyebrowse-mode t)
+  (progn
+            (define-key eyebrowse-mode-map (kbd "<f12>") 'eyebrowse-switch-to-window-config-1)
+            (define-key eyebrowse-mode-map (kbd "<f11>") 'eyebrowse-switch-to-window-config-2)
+            (define-key eyebrowse-mode-map (kbd "<f10>") 'eyebrowse-switch-to-window-config-3)
+            (define-key eyebrowse-mode-map (kbd "<f9>") 'eyebrowse-switch-to-window-config-4)
+            (define-key eyebrowse-mode-map (kbd "<f8>") 'eyebrowse-switch-to-window-config-5)
+            (define-key eyebrowse-mode-map (kbd "<f7>") 'eyebrowse-switch-to-window-config-6))
+  )
+ #+end_src
+* Misc packages
+** docker
+ #+begin_src emacs-lisp
+(use-package docker
+  :ensure t
+  :bind ("C-c d" . docker))
+ #+end_src
+** google-translate
+ #+begin_src emacs-lisp
+(use-package google-translate
+  :after eyebrowse
+  :init
+  (setq google-translate-backend-method 'curl)
+  (setq google-translate-default-source-language "de")
+  (setq google-translate-default-target-language "en")
+  (setq google-translate-translation-directions-alist '(("en" . "de") ("de" . "en")))
+  :config
+  (progn
+    (define-key eyebrowse-mode-map (kbd "C-c g t") 'google-translate-smooth-translate)))
+ #+end_src
+** mqttclient-mode
+ A self made MQTT client mode.
+ #+begin_src emacs-lisp
+(use-package mqttclient-mode
+  :mode (("\\.mqtt\\'" . mqttclient-mode)
+         ))
+ #+end_src
+** company
+ #+begin_src emacs-lisp
+(use-package company)
+ #+end_src
+** json-mode
+ #+begin_src emacs-lisp
+(use-package json-mode)
+ #+end_src
+** typescript-mode)
+ #+begin_src emacs-lisp
+(use-package typescript-mode)
+ #+end_src
+** flymake-json
+ #+begin_src emacs-lisp
+(use-package flymake-json)
+ #+end_src
+** confluence
+ #+begin_src emacs-lisp
+(use-package confluence
+  :config
+  (setq confluence-url "http://confluence.tarent.de/rpc/xmlrpc"))
+ #+end_src
+** kill-ring-search
+ #+begin_src emacs-lisp
+(use-package kill-ring-search)
+ #+end_src
+** helm
+ #+begin_src emacs-lisp
+(use-package helm
+  :demand t
+  :bind (( "<f5> <f5>" . helm-org-agenda-files-headings)
+      ( "<f5> a" . helm-apropos)
+      ( "<f5> A" . helm-apt)
+      ( "<f5> b" . helm-buffers-list)
+      ( "<f5> c" . helm-colors)
+      ( "<f5> f" . helm-find-files)
+      ( "<f5> i" . helm-semantic-or-imenu)
+      ( "<f5> k" . helm-show-kill-ring)
+      ( "<f5> K" . helm-execute-kmacro)
+      ( "<f5> l" . helm-locate)
+      ( "<f5> m" . helm-man-woman)
+      ( "<f5> o" . helm-occur)
+      ( "<f5> r" . helm-resume)
+      ( "<f5> R" . helm-register)
+      ( "<f5> t" . helm-top)
+      ( "<f5> u" . helm-ucs)
+      ( "<f5> p" . helm-list-emacs-process)
+      ( "<f5> x" . helm-M-x))
+  )
+ #+end_src
+** irfc
+ You can visit rfcs with this package. I store them in the opensource dir of my home. Visiting new ones will download them automatically.
+ #+begin_src emacs-lisp
+(use-package irfc
+  :config
+  (setq irfc-assoc-mode t)
+  (setq irfc-directory "/home/chuhlich/opensource/RFCs"))
+ #+end_src
+* Major modes and programming setups
+** go-mode
+ #+begin_src emacs-lisp
+(use-package go-mode)
+(use-package company-go
+  :after company-go)
+
+(use-package go-projectile)
+; pkg go installation
+(setq exec-path (append '("/usr/local/go/bin") exec-path))
+(setenv "PATH" (concat "/usr/local/go/bin:" (getenv "PATH")))
+
+(defun my-go-mode-hook ()
+      (setq tab-width 2 indent-tabs-mode 1)
+      ; eldoc shows the signature of the function at point in the status bar.
+      (go-eldoc-setup)
+      (local-set-key (kbd "M-.") #'godef-jump)
+      (add-hook 'before-save-hook 'gofmt-before-save)
+      (setq exec-path (append '("/usr/local/go/bin") exec-path))
+
+      ; extra keybindings from https://github.com/bbatsov/prelude/blob/master/modules/prelude-go.el
+      (let ((map go-mode-map))
+        (define-key map (kbd "C-c a") 'go-test-current-project) ;; current package, really
+        (define-key map (kbd "C-c m") 'go-test-current-file)
+        (define-key map (kbd "C-c .") 'go-test-current-test)
+        (define-key map (kbd "C-c b") 'go-run)))
+(add-hook 'go-mode-hook 'my-go-mode-hook)
+(add-hook 'go-mode-hook #'lsp)
+(require 'go-projectile)
+(go-projectile-tools-add-path)
+(setq gofmt-command (concat go-projectile-tools-path "gofmt"))
+
+; "company" is auto-completion
+(add-hook 'go-mode-hook (lambda ()
+                          (company-mode)
+                          (set (make-local-variable 'company-backends) '(company-go))))
+
+; gotest defines a better set of error regexps for go tests, but it only
+; enables them when using its own functions. Add them globally for use in
+(require 'compile)
+(require 'gotest)
+(dolist (elt go-test-compilation-error-regexp-alist-alist)
+  (add-to-list 'compilation-error-regexp-alist-alist elt))
+(defun prepend-go-compilation-regexps ()
+  (dolist (elt (reverse go-test-compilation-error-regexp-alist))
+    (add-to-list 'compilation-error-regexp-alist elt t)))
+(add-hook 'go-mode-hook 'prepend-go-compilation-regexps)
+ #+end_src
+** tide
+ #+begin_src emacs-lisp
+(use-package tide
+  :ensure t
+  :after (typescript-mode company flycheck)
+  :hook ((typescript-mode . tide-setup)
+         (typescript-mode . tide-hl-identifier-mode)
+         (before-save . tide-format-before-save)))
+
+ #+end_src
+** c++-mode
+ #+begin_src emacs-lisp
+(use-package c++-mode
+  :after ccls
+  :mode (("\\.cc\\'" . c++-mode)
+         ("\\.h\\'" . c++-mode)
+         ("\\.hpp\\'" . c++-mode)
+         ("\\.tpp\\'" . c++-mode)
+         ("\\.cpp\\'" . c++-mode))
+   ;; :bind (:map c++-mode-map
+   ;;             ("C-x c" . 'cmake-ide-compile))
+  )
+ #+end_src
+*** ccls
+  #+begin_src emacs-lisp
+(use-package ccls
+  :after projectile
+  :custom
+  (ccls-args nil)
+  (ccls-executable (executable-find "ccls"))
+  (projectile-project-root-files-top-down-recurring
+   (append '("compile_commands.json" ".ccls")
+           projectile-project-root-files-top-down-recurring))
+  :config (push ".ccls-cache" projectile-globally-ignored-directories)
+  :hook ((c-mode c++-mode objc-mode cuda-mode) .
+         (lambda () (require 'ccls) (lsp))))
+
+  #+end_src
+*** cmake-mode
+  #+begin_src emacs-lisp
+(use-package cmake-mode
+  :mode (("CMakeLists\\.txt\\'" . cmake-mode)
+         ("\\.cmake\\'" . cmake-mode))
+  :init (setq cmake-tab-width 4)
+  )
+  #+end_src
+*** cmake-font-lock
+  #+begin_src emacs-lisp
+(use-package cmake-font-lock
+  :after (cmake-mode)
+  :hook (cmake-mode . cmake-font-lock-activate))
+  #+end_src
+*** cmake-ide
+  #+begin_src emacs-lisp
+(use-package cmake-ide
+  :after projectile
+  :hook (c++-mode . my/cmake-ide-find-project)
+  :preface
+  (defun my/cmake-ide-find-project ()
+    "Finds the directory of the project for cmake-ide."
+    (condition-case nil
+        (when (projectile-verify-file "CMakeLists.txt")
+          (with-eval-after-load 'projectile
+            (setq cmake-ide-project-dir (projectile-project-root))
+            (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build")))
+          (cmake-ide-load-db))))
+
+  (defun my/switch-to-compilation-window ()
+    "Switches to the *compilation* buffer after compilation."
+    (other-window 1))
+  :bind ([remap comment-region] . cmake-ide-compile)
+  :init (cmake-ide-setup)
+  :config (advice-add 'cmake-ide-compile :after #'my/switch-to-compilation-window))
+
+
+; from enberg on #emacs
+(setq compilation-finish-function
+  (lambda (buf str)
+    (if (null (string-match ".*exited abnormally.*" str))
+        ;;no errors, make the compilation window go away in a few seconds
+        (progn
+          (run-at-time
+           "2 sec" nil 'delete-windows-on
+           (get-buffer-create "*platformio-compilation*"))
+          (message "No Compilation Errors!")))))
+  #+end_src
+*** clang-format
+  #+begin_src emacs-lisp
+(use-package clang-format
+  :config (global-set-key [C-M-tab] 'clang-format-region)
+  )
+  #+end_src
+* lsp
+** lsp-mode
+ #+begin_src emacs-lisp
+(use-package lsp-mode
+  :commands lsp
+  :init
+  (setq lsp-keymap-prefix "s-c"))
+ #+end_src
+** lsp-ui
+ #+begin_src emacs-lisp
+(use-package lsp-ui 
+:commands lsp-ui-mode)
+ #+end_src
+** lsp-java
+ #+begin_src emacs-lisp
+(use-package lsp-java
+  :config (add-hook 'java-mode-hook #'lsp)
+  )
+
+ #+end_src
+** lsp-treemacs
+ #+begin_src emacs-lisp
+(use-package lsp-treemacs)
+
+;; supress welcome screen
+(setq inhibit-startup-message t)
+
+;; Bind other-window (and custom prev-window) to more accessible keys.
+(defun prev-window ()
+  (interactive)
+  (other-window -1))
+(global-set-key (kbd "C-'") 'other-window)
+(global-set-key (kbd "C-;") 'prev-window)
+
+
+ #+end_src
+* cask-mode
+#+begin_src emacs-lisp
+(use-package cask-mode
+  :mode "Cask"
+  )
+#+end_src
+* Embedded / Arduino etc.
+** platformio-mode
+ #+begin_src emacs-lisp
+(use-package platformio-mode)
+ #+end_src
+* dockerfile-mode
+#+begin_src emacs-lisp
+(use-package dockerfile-mode
+  :mode "Dockerfile.*\\'"
+  )
+#+end_src
+* protobuf-mode
+#+begin_src emacs-lisp
+(use-package protobuf-mode
+  :mode "\\.proto\\'"
+  )
+
+;; Swift
+#+end_src
+* flycheck etc.
+** Flycheck
+ #+begin_src emacs-lisp
+(use-package flycheck
+  :init (global-flycheck-mode)
+  )
+ #+end_src
+** flycheck-color-mode-line
+ #+begin_src emacs-lisp
+(use-package flycheck-color-mode-line
+  :after flycheck
+  :config '(add-hook 'flycheck-mode-hook 'flycheck-color-mode-line-mode)
+  )
+ #+end_src
+** flycheck-pos-tip
+ #+begin_src emacs-lisp
+(use-package flycheck-pos-tip
+  :after flycheck
+  :config (flycheck-pos-tip-mode)
+  )
+ #+end_src
+* company
+#+begin_src emacs-lisp
+(use-package company
+  :config (global-company-mode)
+  (setq company-transformers nil company-lsp-async t company-lsp-cache-candidates nil)  
+  )
+
+#+end_src
+* company-lsp
+#+begin_src emacs-lisp
+(use-package company-lsp
+  :init (push 'company-lsp company-backends)
+  )
+#+end_src
+* markdown-mode
+#+begin_src emacs-lisp
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "pandoc"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; C/C++ mode modifications
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(add-hook 'c-mode-common-hook 'google-set-c-style)
+
+;; also toggle on auto-newline and hungry delete minor modes
+(defun my-c++-mode-hook ()
+  (c-set-style "google")        ; use my-style defined above
+  (auto-fill-mode)
+  (platformio-conditionally-enable))
+
+(add-hook 'c++-mode-hook 'my-c++-mode-hook)
+
+;; Autoindent using google style guide
+(add-hook 'c-mode-common-hook 'google-make-newline-indent)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; elpy (python IDE-ish features)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+#+end_src
+* elpy
+#+begin_src emacs-lisp
+(use-package elpy
+  :after company flycheck
+  :init (defun goto-def-or-rgrep ()
+          "Go to definition of thing at point or do an rgrep in project if that fails"
+          (interactive)
+          (condition-case nil (elpy-goto-definition)
+            (error (elpy-rgrep-symbol (thing-at-point 'symbol)))))
+  ;; Custom keybindings.
+  :bind (:map elpy-mode-map
+              ("<home>" . 'goto-def-or-rgrep)
+              ("<prior>" . 'pop-tag-mark)
+              ("<next>" . 'elpy-goto-definition))
+  :config
+  (elpy-enable)
+  ;; Use flycheck not flymake with elpy.
+  (when (require 'flycheck nil t)
+    (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+    (add-hook 'elpy-mode-hook 'flycheck-mode))
+  )
+#+end_src
+* ivy
+#+begin_src emacs-lisp
+(use-package ivy
+  :config
+  (ivy-mode)
+  (setq ivy-use-virtual-buffers t)
+  (setq enable-recursive-minibuffers t)
+  )
+#+end_src
+* ag
+#+begin_src emacs-lisp
+(use-package ag)
+#+end_src
+* magit
+Magit is the incredible git client within emacs!
+Whenever in a repo - press =C-x g= to get a separate status buffer.
+#+begin_src emacs-lisp
+(use-package magit)
+#+end_src
+* git-commit
+This is adding some discipline. Keep your commit messages short.
+#+begin_src emacs-lisp
+(use-package git-commit
+  ;; Limit commit message summary to 50 columns, and wrap content after 72 columns.
+  :init (add-hook 'git-commit-mode-hook
+                  '(lambda ()
+                     (setq-local git-commit-summary-max-length 50)
+                     (setq-local fill-column 72)))
+  )
+#+end_src
+* counsel
+#+begin_src emacs-lisp
+(use-package counsel
+  :after ag ivy magit
+  :bind (("\C-s" . 'swiper)
+         ("C-c C-r" . 'ivy-resume)
+         ("<f6>" . 'ivy-resume)
+         ("M-x" . 'counsel-M-x)
+         ("C-x C-f" . 'counsel-find-file)
+         ("<f1> f" . 'counsel-describe-function)
+         ("<f1> v" . 'counsel-describe-variable)
+         ("<f1> l" . 'counsel-find-library)
+         ("<f2> i" . 'counsel-info-lookup-symbol)
+         ("<f2> u" . 'counsel-unicode-char)
+         ("C-c g" . 'counsel-git)
+         ("C-c j" . 'counsel-git-grep)
+         ("C-c k" . 'counsel-ag)
+         ("C-x l" . 'counsel-locate)
+         ("C-x g" . 'magit-status)
+         ("C-r" . 'counsel-minibuffer-history))
+  :init (setq counsel-git-grep-skip-counting-lines t)
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; drag stuff
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+#+end_src
+* drag-stuff
+#+begin_src emacs-lisp
+(use-package drag-stuff
+  :config
+  (drag-stuff-global-mode 1)
+  (drag-stuff-define-keys)
+  )
+#+end_src
+* expand-region
+#+begin_src emacs-lisp
+(use-package expand-region)
+#+end_src
+* idle-highlight-mode
+#+begin_src emacs-lisp
+(use-package idle-highlight-mode
+  :config
+  (defun idle-highlight-mode-hook ()
+    (make-local-variable 'column-number-mode)
+    (column-number-mode t)
+    (idle-highlight-mode t))
+  (add-hook 'emacs-lisp-mode-hook 'idle-highlight-mode-hook)
+  (add-hook 'c-mode-common-hook 'idle-highlight-mode-hook)
+  )
+  #+end_src
+* Org
+** org mode
+ #+begin_src emacs-lisp
+(use-package org
+  :ensure org-plus-contrib
+  :bind (("C-c M" . 'org-agenda-view))
+  :config
+  ;; Activate Org-babel languages.
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '(;; other Babel languages
+     (restclient . t)
+     (python . t)
+     (shell . t)
+     (C . t)
+     (lisp . t)
+     (go . t)
+     (latex . t)))
+  (setq org-babel-python-command "python3")
+  (setq org-todo-keywords
+        '((sequence "TODO" "ONGOING" "WAITING" "|" "DONE" "DELEGATED" "CANCELED")))
+  ;; automatically call minor mode for trello boards
+  (add-hook 'org-mode-hook
+            (lambda () (if (assoc "orgtrello_user_me" org-file-properties)
+                         (org-trello-mode))))
+  (setq org-default-notes-file (concat "~/notes/inbox.org"))
+  ;; This will allow refiling into all files from the agenda file list
+  ;; https://blog.aaronbieber.com/2017/03/19/organizing-notes-with-refile.html
+  (setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
+  (setq org-refile-use-outline-path 'file)
+  (setq org-outline-path-complete-in-steps nil)
+  
+  (add-hook 'org-timer-done-hook 'my-org-timer-done)
+
+  (defun my-org-agenda-skip-all-siblings-but-first ()
+    "Skip all but the first non-done entry."
+    (let (should-skip-entry)
+      (unless (org-current-is-todo)
+        (setq should-skip-entry t))
+      (save-excursion
+        (while (and (not should-skip-entry) (org-goto-sibling t))
+          (when (org-current-is-todo)
+            (setq should-skip-entry t))))
+      (when should-skip-entry
+        (or (outline-next-heading)
+            (goto-char (point-max))))))
+
+  (defun org-current-is-todo ()
+    (string= "TODO" (org-get-todo-state)))
+  (defun my-org-timer-done ()
+    (shell-command "canberra-gtk-play --file=/usr/share/sounds/gnome/default/alerts/glass.ogg"))
+  (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
+  )
+
+
+;; toggl
+ #+end_src
+** org-toggl
+ #+begin_src emacs-lisp
+(use-package org-toggl
+  :defer 5
+  :config
+  (toggl-get-projects)
+  (org-toggl-integration-mode)
+  (defun my-check-toggl-project-hook ()
+    (when (eq (org-entry-get nil "toggl-project") nil)
+      (call-interactively 'org-toggl-set-project)))
+
+  (add-hook 'org-clock-in-hook 'my-check-toggl-project-hook)
+  (define-key org-mode-map (kbd "C-c C-x s") 'org-toggl-set-project))
+
+ #+end_src
+** org-journal
+ This is used for my journal. In combination with toggl I use it for clocking time onto projects.
+ #+begin_src emacs-lisp
+(use-package org-journal
+  :defer t)
+ #+end_src
+** TODO orgmine
+ #+begin_src emacs-lisp
+(use-package orgmine
+  :after elmine
+  :config
+  (add-hook 'org-mode-hook
+            (lambda () (if (assoc "om_project" org-file-properties)
+                           (orgmine-mode)))))
+
+ #+end_src
+** TODO org-vcard
+ #+begin_src emacs-lisp
+(use-package org-vcard)
+ #+end_src
+** org-babel for go
+ #+begin_src emacs-lisp
+(use-package ob-go)
+ #+end_src
+** org-gcal
+I am using gmail for work. But I currently ony use synching downwards.
+Syncing into gmail was not yet in my scope.
+*** TODO I m looking for a nice way to integrate calendar items directly by using mu4e (reading the ical file attachment).
+   #+begin_src emacs-lisp
+(use-package org-gcal
+  :ensure t
+  :config
+  (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-fetch) ))
+  (defun new/org-gcal-notify (title mes)
+    (message "org-gcal::%s - %s" title mes))
+  (fset 'org-gcal--notify 'new/org-gcal-notify))
+;  (add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) )))
+   #+end_src
+** elmine
+ #+begin_src emacs-lisp
+(use-package elmine)
+
+(require 'org-protocol)
+ #+end_src
+** org-protocol-capture-html
+ #+begin_src emacs-lisp
+(use-package org-protocol-capture-html)
+
+ #+end_src
+** calfw
+ #+begin_src emacs-lisp
+(use-package calfw
+  :bind (("C-c A" . my-calendar)
+         :map cfw:calendar-mode-map
+         ("M-n" . cfw:navi-next-month-command)
+         ("M-p" . cfw:navi-previous-month-command)
+         ("j"   . cfw:navi-goto-date-command)
+         ("g"   . cfw:refresh-calendar-buffer))
+  :commands cfw:open-calendar-buffer
+  :functions (cfw:open-calendar-buffer
+              cfw:refresh-calendar-buffer
+              cfw:org-create-source
+              cfw:cal-create-source)
+  :preface
+  (defun my-calendar ()
+    (interactive)
+    (let ((buf (get-buffer "*cfw-calendar*")))
+      (if buf
+          (pop-to-buffer buf nil)
+        (cfw:open-calendar-buffer
+         :contents-sources
+         (list (cfw:org-create-source "Dark Blue"))
+         :view 'two-weeks)
+        (setq-local org-agenda-files org-agenda-files)))))
+   #+end_src
+** calfw-org
+ #+begin_src emacs-lisp
+ (use-package calfw-org
+    :config
+    (setq cfw:org-agenda-schedule-args '(:deadline :timestamp :sexp)))
+  (setq cfw:fchar-junction         ?╋
+        cfw:fchar-vertical-line    ?┃
+        cfw:fchar-horizontal-line  ?━
+        cfw:fchar-left-junction    ?┣
+        cfw:fchar-right-junction   ?┫
+        cfw:fchar-top-junction     ?┯
+        cfw:fchar-top-left-corner  ?┏
+        cfw:fchar-top-right-corner ?┓)
+ #+end_src
+** org-jira
+ #+begin_src emacs-lisp
+(use-package org-jira)
+
+;; Using bullets instead of *
+ #+end_src
+** org-bullets
+ #+begin_src emacs-lisp
+(use-package org-bullets
+  :config
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+
+ #+end_src
+** ox-reveal
+With org reveal you can add an easy way to create reveal presentations directly from your org file.
+
+ #+begin_src :tangle no
+#+REVEAL_ROOT: file:///home/chuhlich/opensource/reveal.js
+#+reveal_overview: t
+#+REVEAL_INIT_OPTIONS: transition: 'concave'
+#+REVEAL_THEME: white
+#+REVEAL_EXTRA_CSS: ./tarentreveal.css
+#+EXPORT_AUTHOR: Christoph Uhlich
+#+EXPORT_DATE: 2020-03-21
+#+EXPORT_TITLE: My Title
+#+EXPORT_EMAIL: Test@example.com
+#+EXPORT_OPTIONS: num:nil toc:nil reveal_keyboard:t reveal_overview:t
+#+EXPORT_REVEAL_HLEVEL: 3
+#+EXPORT_REVEAL_MARGIN: 200
+#+REVEAL_DEFAULT_FRAG_STYLE: roll-in
+ #+end_src
+
+ #+begin_src emacs-lisp
+(use-package ox-reveal
+  :init
+  (setq org-reveal-root "/home/chuhlich/opensource/reveal.js"))
+
+(global-set-key (kbd "C-c a") '(lambda (&optional arg) (interactive "P")(org-agenda arg "t")))
+(global-set-key (kbd "C-c s") '(lambda (&optional arg) (interactive "P")(org-switchb)))
+(global-set-key (kbd "C-c c") '(lambda (&optional arg) (interactive "P")(org-capture)))
+ #+end_src
+* ibuffer
+Enter a buffer overview by pressing =C-x C-b=.
+More info:
+
+http://martinowen.net/blog/2010/02/03/tips-for-emacs-ibuffer.html
+http://ergoemacs.org/emacs/emacs_buffer_management.html
+http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
+
+#+begin_src emacs-lisp
+(use-package ibuffer
+  :bind ("C-x C-b" . 'ibuffer)
+  :config
+  ;; Define IBuffer filter modes.
+  (setq ibuffer-saved-filter-groups
+        '(("home"
+           ("emacs-config" (or (filename . ".emacs.d")
+                               (filename . "emacs-config")))
+           ("Org" (or (mode . org-mode)
+                      (filename . "OrgMode")))
+           ("code" (filename . "src"))
+           ("Magit" (name . "\*magit\*"))
+           ("Help" (or (name . "\*Help\*")
+                       (name . "\*Apropos\*")
+                       (name . "\*info\*"))))))
+
+  ;; Load filter.
+  (add-hook 'ibuffer-mode-hook
+            '(lambda ()
+               (ibuffer-switch-to-saved-filter-groups "home")))
+  )
+
+; LATEX SETUP
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; setting up latex mode
+;; Forward/inverse search with evince using D-bus.
+;; Installation:
+;; M-x package-install RET auctex RET
+(add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
+(add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
+(setq TeX-source-correlate-method 'synctex)
+
+(add-to-list 'org-latex-packages-alist
+             '("" "tikz" t))
+
+(if (require 'dbus "dbus" t)
+    (progn
+      ;; universal time, need by evince
+      (defun utime ()
+	(let ((high (nth 0 (current-time)))
+	      (low (nth 1 (current-time))))
+	  (+ (* high (lsh 1 16) ) low)))
+
+      ;; Forward search.
+      ;; Adapted from http://dud.inf.tu-dresden.de/~ben/evince_synctex.tar.gz
+      (defun auctex-evince-forward-sync (pdffile texfile line)
+	(let ((dbus-name
+	       (dbus-call-method :session
+				 "org.gnome.evince.Daemon"  ; service
+				 "/org/gnome/evince/Daemon" ; path
+				 "org.gnome.evince.Daemon"  ; interface
+				 "FindDocument"
+				 (concat "file://" pdffile)
+				 t     ; Open a new window if the file is not opened.
+				 )))
+	  (dbus-call-method :session
+			    dbus-name
+			    "/org/gnome/evince/Window/0"
+			    "org.gnome.evince.Window"
+			    "SyncView"
+			    texfile
+			    (list :struct :int32 line :int32 1)
+			    (utime))))
+
+      (defun auctex-evince-view ()
+	(let ((pdf (file-truename (concat default-directory
+					  (TeX-master-file (TeX-output-extension)))))
+	      (tex (buffer-file-name))
+	      (line (line-number-at-pos)))
+	  (auctex-evince-forward-sync pdf tex line)))
+
+      ;; New view entry: Evince via D-bus.
+      (setq TeX-view-program-list '())
+      (add-to-list 'TeX-view-program-list
+		   '("EvinceDbus" auctex-evince-view))
+
+      ;; Prepend Evince via D-bus to program selection list
+      ;; overriding other settings for PDF viewing.
+      (setq TeX-view-program-selection '())
+      (add-to-list 'TeX-view-program-selection
+		   '(output-pdf "EvinceDbus"))
+
+      ;; Inverse search.
+      ;; Adapted from: http://www.mail-archive.com/auctex@gnu.org/msg04175.html
+      (defun auctex-evince-inverse-sync (file linecol timestamp)
+	(let ((buf (get-file-buffer (substring file 7)))
+	      (line (car linecol))
+	      (col (cadr linecol)))
+	  (if (null buf)
+	      (message "Sorry, %s is not opened..." file)
+	    (switch-to-buffer buf)
+	    (goto-line (car linecol))
+	    (unless (= col -1)
+	      (move-to-column col)))))
+
+      (dbus-register-signal
+       :session nil "/org/gnome/evince/Window/0"
+       "org.gnome.evince.Window" "SyncSource"
+       'auctex-evince-inverse-sync)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(projectile-mode +1)
+(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+
+#+end_src
+* Mail
+#+begin_src emacs-lisp
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
+; mu4e Mails
+(require 'mu4e)
+(require 'mu4e-icalendar)
+(require 'org-mu4e)
+
+(define-key mu4e-headers-mode-map (kbd "C-c c") 'org-mu4e-store-and-capture)
+(define-key mu4e-view-mode-map    (kbd "C-c c") 'org-mu4e-store-and-capture)
+(setq org-mu4e-link-query-in-headers-mode nil
+      org-mu4e-convert-to-html t)
+
+
+;rename files when moving
+;;NEEDED FOR MBSYNC
+(setq mu4e-change-filenames-when-moving t)
+(setq mu4e-maildir "~/Maildir")
+
+
+(setq mail-user-agent 'mu4e-user-agent)
+
+  ;; set `mu4e-context-policy` and `mu4e-compose-policy` to tweak when mu4e should
+  ;; guess or ask the correct context, e.g.
+
+  ;; start with the first (default) context; 
+  ;; default is to ask-if-none (ask when there's no context yet, and none match)
+  ;; (setq mu4e-context-policy 'pick-first)
+
+  ;; compose with the current context is no context matches;
+  ;; default is to ask 
+  ;; (setq mu4e-compose-context-policy nil)                                        ;
+
+(setq org-mu4e-link-query-in-headers-mode nil)
+
+;; allow for updating mail using 'U' in the main view:
+(setq mu4e-get-mail-command "mbsync")
+
+(require 'smtpmail)
+
+;; don't keep message buffers around
+(setq message-kill-buffer-on-exit t)
+
+
+#+end_src
+* Helper functions
+This can be used with REST Client mode for retrieving user/pass to avoid pasting
+** Create auth string from prompt
+With this function you can prompt for user and password. This is usefull in restclientmode to avoid pasting 
+your credentials into the REST API files. Call this from within the mode via lisp execution:
+ #+begin_src :tangle no
+:myAuth := (getAuthString)
+:device_auth =  <<
+Authorization: Basic :myAuth
+#+end_src
+Place this into a 
+ #+begin_src emacs-lisp
+(defun getAuthString ()
+  "Retrieve Auth header for REST Client"
+  (interactive)
+  (concat "Basic " (base64-encode-string (concat (read-string "User: ") ":" (password-read "Password: "))))
+  )
+#+end_src
+** Get file name + path
+Show the full path and filename in minibuffer and copy it to killring.
+ #+begin_src emacs-lisp
+(defun show-file-name ()
+  "Show the full path file name in the minibuffer and copy to kill ring."
+  (interactive)
+  (message (buffer-file-name))
+  (kill-new (buffer-file-name)))
+ #+end_src
+** A custom var for agenda contexts
+Holds a list of files / folders. With =cu/org-agenda-context-options= you can switch your org context eg. to =WORK=, =PRIVATE= or =BOTH=. 
+You can define the context names yourself in the customization setup.
+The current setup is =cu/org-agenda-context=
+ #+begin_src emacs-lisp
+(defcustom cu/org-agenda-context-options nil
+  "An a list of different contexts for agenda loading."
+  :type '(alist))
+
+(defcustom cu/org-agenda-context nil
+  "The current set key to org-agenda-context-options, which is used for loading the agenda."
+  :type '(string))
+
+(defun cu/choose-org-context ()
+  "Choose the org agenda context from the alist."
+  (interactive)
+  (setq cu/org-agenda-context 
+        (ivy-read "Describe function: "
+                  (mapcar 'car cu/org-agenda-context-options)
+                  :preselect (ivy-thing-at-point)
+                  :require-match t
+                  :sort t
+                  :caller 'cu/choose-org-context))
+  (setq org-agenda-files (cdr (assoc cu/org-agenda-context cu/org-agenda-context-options)))
+  (message "Using %s file set for org-agenda." cu/org-agenda-context))
+#+end_src
+Allow inline execution of specific babel modes.
+ #+begin_src emacs-lisp
+(defun cu/org-confirm-babel-evaluate (lang body)
+  "Do not ask for confirmation on code execution in org BODY for LANG restclient."
+  (not (member lang '("restclient" "shell" "latex"))))
+#+end_src
+* Tail (provide)
+ #+begin_src emacs-lisp
+(provide 'init)
+(setq custom-file "~/Sync/emacsconfig/custom.el")
+(load custom-file)
+ #+end_src

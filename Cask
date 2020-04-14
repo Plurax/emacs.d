@@ -31,11 +31,6 @@
 
 (depends-on "kill-ring-search")
 
-
-;; gradle
-(depends-on "groovy-mode")
-(depends-on "gradle-mode")
-
 ;; go
 (depends-on "go-mode")
 (depends-on "gotest")
@@ -68,7 +63,6 @@
 (depends-on "org-plus-contrib" "9.0")
 (depends-on "helm")
 (depends-on "org-clock-convenience")
-(depends-on "epresent")
 (depends-on "ob-restclient" :git "https://github.com/alf/ob-restclient.el.git")
 (depends-on "verb")
 
@@ -116,8 +110,6 @@
 (depends-on "company-lsp")
 (depends-on "company-irony")
 (depends-on "company-irony-c-headers")
-;; alternatives: company-rtags for completion, irony for syntax checking
-;(depends-on "flycheck-irony")
 (depends-on "ccls")
 
 ;; --- elpy for python IDE-ish features
@@ -152,16 +144,10 @@
 (depends-on "cmake-font-lock" :git "https://github.com/Lindydancer/cmake-font-lock.git")
 (depends-on "dockerfile-mode")
 (depends-on "markdown-mode")
-(depends-on "plantuml-mode")
 (depends-on "protobuf-mode")
-(depends-on "swift-mode")
 
 ;; use-package (isolated package configurations)
 (depends-on "use-package")
-
-;; Smart-mode-line
-(depends-on "smart-mode-line")
-(depends-on "smart-mode-line-powerline-theme")
 
 ;; Themes
 ;(depends-on "sublime-themes")
@@ -180,13 +166,9 @@
 ;; Common
 (depends-on "bind-key")
 (depends-on "dash")
-(depends-on "dash")
 
 ;; REST Client
 (depends-on "restclient")
 
 ;; Smartparens (smart handling of parenthesis pairs)
 (depends-on "smartparens")
-
-;; Multiple cursors (mirror-editing at several lines at once)
-;(depends-on "multiple-cursors")
