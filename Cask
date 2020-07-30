@@ -10,11 +10,15 @@
             :git "https://github.com/yskkin/irfc.git")
 
 ;; toggl
+(depends-on "org-super-agenda")
 (depends-on "org-toggl" :git "https://github.com/mbork/org-toggl.git")
 (depends-on "org-journal")
 ;(depends-on "org-reveal" :git "https://github.com/yjwen/org-reveal.git")
 (depends-on "ox-reveal")
 
+
+(depends-on "unicode-fonts")
+(depends-on "persistent-soft")
 
 ;; eyebrowse
 (depends-on "eyebrowse")
@@ -44,6 +48,9 @@
 (depends-on "tide")
 (depends-on "typescript-mode")
 
+;; react JSX
+(depends-on "rjsx-mode")
+
 ;; needed for path changes
 (depends-on "go-projectile")
 
@@ -68,15 +75,13 @@
 
 (depends-on "ob-go")
 
-(depends-on "orgmine")
-(depends-on "elmine")
-
 ;; calfw
 (depends-on "calfw")
-(depends-on "calfw-cal")
+(depends-on "calfw-ical")
 (depends-on "calfw-org")
 
 (depends-on "org-gcal")
+(depends-on "org-caldav")
 (depends-on "org-msg")
 
 (depends-on "org-bullets")
@@ -144,6 +149,7 @@
 (depends-on "cmake-font-lock" :git "https://github.com/Lindydancer/cmake-font-lock.git")
 (depends-on "dockerfile-mode")
 (depends-on "markdown-mode")
+(depends-on "markdown-toc")
 (depends-on "protobuf-mode")
 
 ;; use-package (isolated package configurations)
@@ -152,6 +158,8 @@
 ;; Themes
 ;(depends-on "sublime-themes")
 (depends-on "doom-themes")
+(depends-on "chocolate-theme")
+(depends-on "tron-legacy-theme")
 (depends-on "doom-modeline")
 
 ;; Highlight word under point when idle
