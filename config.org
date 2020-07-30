@@ -41,6 +41,7 @@ as you switch between them.
 I need this when switching between docked and stand alone mode.
 #+begin_src emacs-lisp
 (global-set-key (kbd "M-<f11>") 'toggle-frame-fullscreen)
+(global-set-key (kbd "C-c t") 'treemacs)
 #+end_src
 ** comint and Shell modifications
 Changed a default colour to "dodger blue" to make ls colours easier to see.
@@ -127,11 +128,17 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   (doom-themes-org-config))
 
   #+end_src
+*** tron-legacy theme
+(use-package tron-legacy-theme
+  :config
+(setq tron-legacy-theme-vivid-cursor t))
 *** doom-modeline
   #+begin_src emacs-lisp
 (use-package doom-modeline
   :ensure t
-  :hook (after-init . doom-modeline-mode))
+  :hook (after-init . doom-modeline-mode)
+  :config
+  (display-battery-mode 1))
 
 
   #+end_src
@@ -161,6 +168,17 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 (global-hl-line-mode 0)
 
   #+end_src
+*** persistent-soft
+  #+begin_src emacs-lisp
+(use-package persistent-soft)
+ #+end_src
+*** unicode fonts
+  #+begin_src emacs-lisp
+(use-package unicode-fonts
+:config
+(unicode-fonts-setup)
+)
+  #+end_src
 ** default-text-scale
  #+begin_src emacs-lisp
 (use-package default-text-scale)
@@ -181,7 +199,8 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
             (define-key eyebrowse-mode-map (kbd "<f10>") 'eyebrowse-switch-to-window-config-3)
             (define-key eyebrowse-mode-map (kbd "<f9>") 'eyebrowse-switch-to-window-config-4)
             (define-key eyebrowse-mode-map (kbd "<f8>") 'eyebrowse-switch-to-window-config-5)
-            (define-key eyebrowse-mode-map (kbd "<f7>") 'eyebrowse-switch-to-window-config-6))
+            (define-key eyebrowse-mode-map (kbd "<f7>") 'eyebrowse-switch-to-window-config-6)
+            (define-key eyebrowse-mode-map (kbd "<f6>") 'eyebrowse-switch-to-window-config-7))
   )
  #+end_src
 * Misc packages
@@ -202,7 +221,7 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   (setq google-translate-translation-directions-alist '(("en" . "de") ("de" . "en")))
   :config
   (progn
-    (define-key eyebrowse-mode-map (kbd "C-c g t") 'google-translate-smooth-translate)))
+  (define-key eyebrowse-mode-map (kbd "C-c g t") 'google-translate-smooth-translate)))
  #+end_src
 ** mqttclient-mode
  A self made MQTT client mode.
@@ -409,6 +428,10 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   :config (global-set-key [C-M-tab] 'clang-format-region)
   )
   #+end_src
+** rsjx mode
+ #+begin_src emacs-lisp
+(use-package rjsx-mode)
+ #+end_src
 * lsp
 ** lsp-mode
  #+begin_src emacs-lisp
@@ -515,6 +538,8 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
          ("\\.markdown\\'" . markdown-mode))
   :init (setq markdown-command "pandoc"))
 
+(use-package markdown-toc)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; C/C++ mode modifications
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -593,7 +618,6 @@ This is adding some discipline. Keep your commit messages short.
   :after ag ivy magit
   :bind (("\C-s" . 'swiper)
          ("C-c C-r" . 'ivy-resume)
-         ("<f6>" . 'ivy-resume)
          ("M-x" . 'counsel-M-x)
          ("C-x C-f" . 'counsel-find-file)
          ("<f1> f" . 'counsel-describe-function)
@@ -714,17 +738,8 @@ This is adding some discipline. Keep your commit messages short.
  This is used for my journal. In combination with toggl I use it for clocking time onto projects.
  #+begin_src emacs-lisp
 (use-package org-journal
-  :defer t)
- #+end_src
-** TODO orgmine
- #+begin_src emacs-lisp
-(use-package orgmine
-  :after elmine
-  :config
-  (add-hook 'org-mode-hook
-            (lambda () (if (assoc "om_project" org-file-properties)
-                           (orgmine-mode)))))
-
+  :defer t
+)
  #+end_src
 ** TODO org-vcard
  #+begin_src emacs-lisp
@@ -771,20 +786,40 @@ Syncing into gmail was not yet in my scope.
   :commands cfw:open-calendar-buffer
   :functions (cfw:open-calendar-buffer
               cfw:refresh-calendar-buffer
-              cfw:org-create-source
-              cfw:cal-create-source)
+              cfw:org-create-source)
   :preface
   (defun my-calendar ()
     (interactive)
     (let ((buf (get-buffer "*cfw-calendar*")))
       (if buf
           (pop-to-buffer buf nil)
-        (cfw:open-calendar-buffer
+          (cfw:open-calendar-buffer
          :contents-sources
          (list (cfw:org-create-source "Dark Blue"))
+;         (cfw:cal-create-source "Orange"))
          :view 'two-weeks)
         (setq-local org-agenda-files org-agenda-files)))))
-   #+end_src
+
+(use-package calfw-ical
+:after calfw)
+
+; DSID 201066911 https://p45-caldav.icloud.com/DSID/calendars/CALNAME
+
+#+end_src
+
+** TODO caldav
+
+ #+begin_src emacs-lisp
+(use-package org-caldav
+:config
+(setq org-caldav-calendars
+'((:url "https://p45-caldav.icloud.com/201066911/calendars/Kalender" 
+:calendar-id "" :files ("~/Sync/org/icloud.org")
+:inbox "~/org/ionbox.org")
+       )
+))  
+#+end_src
+
 ** calfw-org
  #+begin_src emacs-lisp
  (use-package calfw-org
@@ -812,6 +847,14 @@ Syncing into gmail was not yet in my scope.
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
  #+end_src
+** org contacts
+ #+begin_src emacs-lisp
+(use-package org-contacts
+  :ensure nil
+  :after org
+  :custom (org-contacts-files '("~/Sync/contacts/contacts.org")))
+ #+end_src
+
 ** ox-reveal
 With org reveal you can add an easy way to create reveal presentations directly from your org file.
 
@@ -960,7 +1003,22 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 ; mu4e Mails
 (require 'mu4e)
 (require 'mu4e-icalendar)
-(require 'org-mu4e)
+
+
+(setq   mu4e-headers-first-child-prefix '("\\" . "┗▶")
+        mu4e-headers-duplicate-prefix '("=" . "≡")
+        mu4e-headers-default-prefix '("|" . "┃")
+        mu4e-headers-draft-mark '("D" . "✎")
+        mu4e-headers-flagged-mark '("F" . "⚑")
+        mu4e-headers-new-mark '("N" . "✱")
+        mu4e-headers-passed-mark '("P" . "✈")
+        mu4e-headers-replied-mark '("R" . "☇")
+        mu4e-headers-seen-mark '("S" . "✅")
+        mu4e-headers-trashed-mark '("T" . "🗑")
+        mu4e-headers-attach-mark '("a" . "⎙")
+        mu4e-headers-encrypted-mark '("x" . "🔒")
+        mu4e-headers-signed-mark '("s" . "🔒")
+        mu4e-headers-unread-mark '("u" . "❗"))
 
 (define-key mu4e-headers-mode-map (kbd "C-c c") 'org-mu4e-store-and-capture)
 (define-key mu4e-view-mode-map    (kbd "C-c c") 'org-mu4e-store-and-capture)
@@ -996,6 +1054,7 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 
 ;; don't keep message buffers around
 (setq message-kill-buffer-on-exit t)
+(require 'org-mu4e)
 
 
 #+end_src
