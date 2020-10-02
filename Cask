@@ -51,6 +51,8 @@
 ;; react JSX
 (depends-on "rjsx-mode")
 
+(depends-on "projectile")
+
 ;; needed for path changes
 (depends-on "go-projectile")
 
@@ -143,6 +145,7 @@
 
 ;; Magit
 (depends-on "magit")
+(depends-on "forge")
 
 ;; Language major modes
 (depends-on "cmake-mode")
