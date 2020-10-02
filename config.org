@@ -318,7 +318,7 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 (add-hook 'go-mode-hook #'lsp)
 (require 'go-projectile)
 (go-projectile-tools-add-path)
-(setq gofmt-command (concat go-projectile-tools-path "gofmt"))
+(setq gofmt-command (concat go-projectile-tools-path "/bin/gofmt"))
 
 ; "company" is auto-completion
 (add-hook 'go-mode-hook (lambda ()
@@ -430,7 +430,9 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   #+end_src
 ** rsjx mode
  #+begin_src emacs-lisp
-(use-package rjsx-mode)
+(use-package rjsx-mode
+:config (add-to-list 'auto-mode-alist '("components\\/.*\\.js\\'" . rjsx-mode))
+)
  #+end_src
 * lsp
 ** lsp-mode
@@ -595,11 +597,14 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 #+begin_src emacs-lisp
 (use-package ag)
 #+end_src
-* magit
+* magit and forge
 Magit is the incredible git client within emacs!
 Whenever in a repo - press =C-x g= to get a separate status buffer.
 #+begin_src emacs-lisp
 (use-package magit)
+
+(use-package forge
+  :after magit)
 #+end_src
 * git-commit
 This is adding some discipline. Keep your commit messages short.
@@ -683,10 +688,6 @@ This is adding some discipline. Keep your commit messages short.
   (setq org-babel-python-command "python3")
   (setq org-todo-keywords
         '((sequence "TODO" "ONGOING" "WAITING" "|" "DONE" "DELEGATED" "CANCELED")))
-  ;; automatically call minor mode for trello boards
-  (add-hook 'org-mode-hook
-            (lambda () (if (assoc "orgtrello_user_me" org-file-properties)
-                         (org-trello-mode))))
   (setq org-default-notes-file (concat "~/notes/inbox.org"))
   ;; This will allow refiling into all files from the agenda file list
   ;; https://blog.aaronbieber.com/2017/03/19/organizing-notes-with-refile.html
@@ -738,6 +739,7 @@ This is adding some discipline. Keep your commit messages short.
  This is used for my journal. In combination with toggl I use it for clocking time onto projects.
  #+begin_src emacs-lisp
 (use-package org-journal
+:after org 
   :defer t
 )
  #+end_src
@@ -763,10 +765,8 @@ Syncing into gmail was not yet in my scope.
   (fset 'org-gcal--notify 'new/org-gcal-notify))
 ;  (add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) )))
    #+end_src
-** elmine
+** org-protocol
  #+begin_src emacs-lisp
-(use-package elmine)
-
 (require 'org-protocol)
  #+end_src
 ** org-protocol-capture-html
@@ -883,6 +883,7 @@ With org reveal you can add an easy way to create reveal presentations directly 
 (global-set-key (kbd "C-c s") '(lambda (&optional arg) (interactive "P")(org-switchb)))
 (global-set-key (kbd "C-c c") '(lambda (&optional arg) (interactive "P")(org-capture)))
  #+end_src
+
 * ibuffer
 Enter a buffer overview by pressing =C-x C-b=.
 More info:
@@ -1117,6 +1118,7 @@ Allow inline execution of specific babel modes.
   "Do not ask for confirmation on code execution in org BODY for LANG restclient."
   (not (member lang '("restclient" "shell" "latex"))))
 #+end_src
+
 * Tail (provide)
  #+begin_src emacs-lisp
 (provide 'init)
