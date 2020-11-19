@@ -5,9 +5,18 @@
 (depends-on "google-translate")
 
 
+(depends-on "which-key")
+
 ;; irfc mode for visiting rfcs
 (depends-on "irfc"
             :git "https://github.com/yskkin/irfc.git")
+
+;; nov.el for epub reading
+(depends-on "nov")
+
+;; auctex
+(depends-on "auctex")
+
 
 ;; toggl
 (depends-on "org-super-agenda")
@@ -86,9 +95,7 @@
 (depends-on "org-caldav")
 (depends-on "org-msg")
 
-(depends-on "org-bullets")
-(depends-on "org-trello")
-(depends-on "org-jira")
+(depends-on "org-superstar")
 
 
 ; ASCII doc
