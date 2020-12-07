@@ -43,6 +43,11 @@ I need this when switching between docked and stand alone mode.
 (global-set-key (kbd "M-<f11>") 'toggle-frame-fullscreen)
 (global-set-key (kbd "C-c t") 'treemacs)
 #+end_src
+** Comment and uncomment
+   #+begin_src emacs-lisp
+(global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region)
+   #+end_src
+   
 ** comint and Shell modifications
 Changed a default colour to "dodger blue" to make ls colours easier to see.
 #+begin_src emacs-lisp
@@ -89,6 +94,13 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
        '("^\n\n\n\n\n\n.*\nRequest for Comments: " . irfc-mode))
           magic-mode-alist))
 #+end_src
+** nov.el for epubs
+#+begin_src emacs-lisp
+(use-package nov
+  :config
+  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+)
+#+end_src
 ** TAB settings
 #+begin_src emacs-lisp
 ;; set tabs to indent as white spaces and set default tab width to 4 white spaces
@@ -127,6 +139,28 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
+(defvar *cu-theme-dark* 'doom-vibrant)
+(defvar *cu-theme-light* 'doom-one-light)
+(defvar *cu-current-theme* *cu-theme-dark*)
+
+;; disable other themes before loading new one
+(defadvice load-theme (before theme-dont-propagate activate)
+  "Disable theme before loading new one."
+  (mapc #'disable-theme custom-enabled-themes))
+
+
+(defun cu/next-theme (theme)
+  (interactive)
+  (progn
+    (disable-theme *cu-current-theme*)
+    (load-theme theme t))
+  (setq *cu-current-theme* theme))
+
+(defun cu/toggle-theme ()
+  (interactive)
+  (cond ((eq *cu-current-theme* *cu-theme-dark*) (cu/next-theme *cu-theme-light*))
+        ((eq *cu-current-theme* *cu-theme-light*) (cu/next-theme *cu-theme-dark*))))
+
   #+end_src
 *** tron-legacy theme
 (use-package tron-legacy-theme
@@ -146,9 +180,9 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   #+begin_src emacs-lisp
 (use-package treemacs
   :ensure t
-  :defer t)
-
-
+  :defer t
+  :bind (("M-<up>" . treemacs-move-project-up)
+         ("M-<down>" . treemacs-move-project-down)))
   #+end_src
 *** treemacs-icons-dired
   #+begin_src emacs-lisp
@@ -203,6 +237,10 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
             (define-key eyebrowse-mode-map (kbd "<f6>") 'eyebrowse-switch-to-window-config-7))
   )
  #+end_src
+** Line numbers in code buffers
+   #+begin_src emacs-lisp
+(add-hook 'prog-mode-hook 'linum-mode)
+   #+end_src
 * Misc packages
 ** docker
  #+begin_src emacs-lisp
@@ -215,6 +253,7 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 (use-package google-translate
   :after eyebrowse
   :init
+  (defun google-translate--search-tkk () "Search TKK." (list 430675 2721866130))
   (setq google-translate-backend-method 'curl)
   (setq google-translate-default-source-language "de")
   (setq google-translate-default-target-language "en")
@@ -240,7 +279,10 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
  #+end_src
 ** typescript-mode)
  #+begin_src emacs-lisp
-(use-package typescript-mode)
+(use-package typescript-mode
+  :mode "\\.ts\\'"
+  :hook (typescript-mode . lsp-deferred)
+  :config (setq typescript-indent-level 2))
  #+end_src
 ** flymake-json
  #+begin_src emacs-lisp
@@ -288,63 +330,50 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   (setq irfc-assoc-mode t)
   (setq irfc-directory "/home/chuhlich/opensource/RFCs"))
  #+end_src
+** which key
+   #+begin_src emacs-lisp
+(use-package which-key)
+   #+end_src
 * Major modes and programming setups
 ** go-mode
  #+begin_src emacs-lisp
-(use-package go-mode)
-(use-package company-go
-  :after company-go)
-
 (use-package go-projectile)
-; pkg go installation
-(setq exec-path (append '("/usr/local/go/bin") exec-path))
-(setenv "PATH" (concat "/usr/local/go/bin:" (getenv "PATH")))
 
-(defun my-go-mode-hook ()
-      (setq tab-width 2 indent-tabs-mode 1)
-      ; eldoc shows the signature of the function at point in the status bar.
-      (go-eldoc-setup)
-      (local-set-key (kbd "M-.") #'godef-jump)
-      (add-hook 'before-save-hook 'gofmt-before-save)
-      (setq exec-path (append '("/usr/local/go/bin") exec-path))
 
-      ; extra keybindings from https://github.com/bbatsov/prelude/blob/master/modules/prelude-go.el
-      (let ((map go-mode-map))
-        (define-key map (kbd "C-c a") 'go-test-current-project) ;; current package, really
-        (define-key map (kbd "C-c m") 'go-test-current-file)
-        (define-key map (kbd "C-c .") 'go-test-current-test)
-        (define-key map (kbd "C-c b") 'go-run)))
-(add-hook 'go-mode-hook 'my-go-mode-hook)
-(add-hook 'go-mode-hook #'lsp)
-(require 'go-projectile)
-(go-projectile-tools-add-path)
-(setq gofmt-command (concat go-projectile-tools-path "/bin/gofmt"))
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
 
-; "company" is auto-completion
-(add-hook 'go-mode-hook (lambda ()
-                          (company-mode)
-                          (set (make-local-variable 'company-backends) '(company-go))))
-
-; gotest defines a better set of error regexps for go tests, but it only
-; enables them when using its own functions. Add them globally for use in
-(require 'compile)
-(require 'gotest)
-(dolist (elt go-test-compilation-error-regexp-alist-alist)
-  (add-to-list 'compilation-error-regexp-alist-alist elt))
-(defun prepend-go-compilation-regexps ()
-  (dolist (elt (reverse go-test-compilation-error-regexp-alist))
-    (add-to-list 'compilation-error-regexp-alist elt t)))
-(add-hook 'go-mode-hook 'prepend-go-compilation-regexps)
  #+end_src
 ** tide
  #+begin_src emacs-lisp
 (use-package tide
   :ensure t
-  :after (typescript-mode company flycheck)
-  :hook ((typescript-mode . tide-setup)
-         (typescript-mode . tide-hl-identifier-mode)
-         (before-save . tide-format-before-save)))
+  :init
+  (setq tide-tsserver-executable "~/.nvm/versions/node/v12.16.3/bin/tsserver"))
 
+(defun setup-tide-mode ()
+
+  (interactive)
+
+  (tide-setup)
+  (flycheck-mode +1)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (eldoc-mode +1)
+  (tide-hl-identifier-mode +1)
+  ;; company is an optional dependency. You have to
+  ;; install it separately via package-install
+  ;; \M-x package-install [ret] company``
+  (company-mode +1))
+                                        ; aligns annotation to the right hand side
+(setq company-tooltip-align-annotations t)
+;; formats the buffer before saving
+(add-hook 'before-save-hook 'tide-format-before-save)
+(add-hook 'typescript-mode-hook #'setup-tide-mode)
+(add-hook 'js2-mode-hook #'setup-tide-mode)
+;; configure javascript-tide checker to run after default javascript checker
+(flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
  #+end_src
 ** c++-mode
  #+begin_src emacs-lisp
@@ -362,7 +391,7 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 *** ccls
   #+begin_src emacs-lisp
 (use-package ccls
-  :after projectile
+  :after projectile lsp-mode
   :custom
   (ccls-args nil)
   (ccls-executable (executable-find "ccls"))
@@ -434,18 +463,60 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 :config (add-to-list 'auto-mode-alist '("components\\/.*\\.js\\'" . rjsx-mode))
 )
  #+end_src
+** js2 mode
+ #+begin_src emacs-lisp
+(use-package js2-mode :ensure t)
+ #+end_src
+
 * lsp
 ** lsp-mode
  #+begin_src emacs-lisp
+(setq exec-path (append exec-path '("~/.nvm/versions/node/v12.16.0/bin")))
+
+(setq lsp-prefer-flymake nil)
+
 (use-package lsp-mode
-  :commands lsp
-  :init
-  (setq lsp-keymap-prefix "s-c"))
+  :init (setq lsp-keymap-prefix "s-c")
+  :commands (lsp lsp-deferred)
+  :ensure t
+  :config
+  (lsp-enable-which-key-integration t)
+  (add-to-list 'lsp-language-id-configuration '(rjsx-mode . "javascript"))
+  (add-hook 'js2-mode-hook 'lsp)
+  (add-hook 'php-mode 'lsp)
+  (add-hook 'css-mode 'lsp)
+  (add-hook 'go-mode-hook 'lsp-deferred)
+  (add-hook 'web-mode 'lsp))
+
+(setq lsp-language-id-configuration '((java-mode . "java")
+(python-mode . "python")
+(gfm-view-mode . "markdown")
+(css-mode . "css")
+(xml-mode . "xml")
+(c-mode . "c")
+(c++-mode . "cpp")
+(web-mode . "html")
+(html-mode . "html")
+(sgml-mode . "html")
+(mhtml-mode . "html")
+(go-mode . "go")
+(json-mode . "json")
+(js2-mode . "javascript")
+(typescript-mode . "typescript")
+))
+
  #+end_src
 ** lsp-ui
  #+begin_src emacs-lisp
-(use-package lsp-ui 
-:commands lsp-ui-mode)
+(use-package lsp-ui
+  :ensure t)
+
+(setq lsp-ui-doc-enable t
+      lsp-ui-peek-enable t
+      lsp-ui-sideline-enable t
+      lsp-ui-imenu-enable t
+      lsp-ui-flycheck-enable t)
+
  #+end_src
 ** lsp-java
  #+begin_src emacs-lisp
@@ -526,9 +597,14 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 #+end_src
 * company-lsp
 #+begin_src emacs-lisp
-(use-package company-lsp
-  :init (push 'company-lsp company-backends)
-  )
+;; (use-package company-lsp
+;;   :ensure t
+;;   :init (push 'company-lsp company-backends)
+;;   )
+#+end_src
+* yasnippet
+#+begin_src emacs-lisp
+(use-package yasnippet :ensure t)
 #+end_src
 * markdown-mode
 #+begin_src emacs-lisp
@@ -814,7 +890,7 @@ Syncing into gmail was not yet in my scope.
 :config
 (setq org-caldav-calendars
 '((:url "https://p45-caldav.icloud.com/201066911/calendars/Kalender" 
-:calendar-id "" :files ("~/Sync/org/icloud.org")
+:calendar-id "" :files ("~/SynologyDrive/Drive/org/icloud.org")
 :inbox "~/org/ionbox.org")
        )
 ))  
@@ -840,11 +916,11 @@ Syncing into gmail was not yet in my scope.
 
 ;; Using bullets instead of *
  #+end_src
-** org-bullets
+** org-bullets-mode
  #+begin_src emacs-lisp
-(use-package org-bullets
+(use-package org-superstar
   :config
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+  (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
 
  #+end_src
 ** org contacts
@@ -852,7 +928,7 @@ Syncing into gmail was not yet in my scope.
 (use-package org-contacts
   :ensure nil
   :after org
-  :custom (org-contacts-files '("~/Sync/contacts/contacts.org")))
+  :custom (org-contacts-files '("~/SynologyDrive/Drive/contacts/contacts.org")))
  #+end_src
 
 ** ox-reveal
@@ -880,10 +956,107 @@ With org reveal you can add an easy way to create reveal presentations directly 
   (setq org-reveal-root "/home/chuhlich/opensource/reveal.js"))
 
 (global-set-key (kbd "C-c a") '(lambda (&optional arg) (interactive "P")(org-agenda arg "t")))
+(global-set-key (kbd "C-c O") '(lambda (&optional arg) (interactive "P")(org-agenda arg "z")))
 (global-set-key (kbd "C-c s") '(lambda (&optional arg) (interactive "P")(org-switchb)))
 (global-set-key (kbd "C-c c") '(lambda (&optional arg) (interactive "P")(org-capture)))
  #+end_src
 
+** Experimental custom agenda view
+
+
+#+begin_src emacs-lisp
+(use-package org-super-agenda
+  :after org
+  :config
+  (add-hook 'org-mode-hook (lambda () (org-super-agenda-mode 1))))
+
+(setq org-agenda-skip-scheduled-if-done t
+      org-agenda-skip-deadline-if-done t
+      org-agenda-include-deadlines t
+      org-agenda-include-diary t
+      org-agenda-block-separator nil
+      org-agenda-compact-blocks t
+      org-agenda-start-with-log-mode t)
+
+(defun agenda-color-char ()
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "⚡" nil t)
+      (put-text-property (match-beginning 0) (match-end 0)
+                         'face '(:height 300 :foreground "gold2" :bold t))))
+
+;; (save-excursion
+;;   (goto-char (point-min))
+;;   (while (re-search-forward org-agenda-hidden-separator nil t)
+;;     (put-text-property (match-beginning 0) (- (match-end 0) 20)
+;;                        'face '(:foreground "red"))))
+  )
+
+(setq org-agenda-block-separator (string-to-char " "))
+(setq org-agenda-format-date 'my-org-agenda-format-date-aligned)
+
+(defun my-org-agenda-format-date-aligned (date)
+  "Format a DATE string for display in the daily/weekly agenda, or timeline.
+          This function makes sure that dates are aligned for easy reading."
+  (require 'cal-iso)
+  (let* ((dayname (calendar-day-name date 1 nil))
+         (day (cadr date))
+         (day-of-week (calendar-day-of-week date))
+         (month (car date))
+         (monthname (calendar-month-name month 1))
+         (year (nth 2 date))
+         (iso-week (org-days-to-iso-week
+                    (calendar-absolute-from-gregorian date)))
+         (weekyear (cond ((and (= month 1) (>= iso-week 52))
+                          (1- year))
+                         ((and (= month 12) (<= iso-week 1))
+                          (1+ year))
+                         (t year)))
+         (weekstring (if (= day-of-week 1)
+                         (format " W%02d" iso-week)
+                       "")))
+    (format " %-2s. %2d %s"
+            dayname day monthname)))
+
+
+(add-hook 'org-mode-local-vars-hook #'(lambda () (eldoc-mode -1)))
+
+;; (add-hook! 'mu4e-view-mode-hook
+;;            #'olivetti-mode)
+
+;;(global-org-pretty-table-mode)
+
+;; custom set faces see custom.el
+
+(defun set-window-clean ()
+  (agenda-color-char)
+  (setq mode-line-format nil)
+  (set-frame-parameter nil 'font "Iosevka-18")
+  (setq header-line-format " ")
+  (set-face-attribute 'header-line nil :background "#00000000")
+  (set-window-margins (frame-selected-window) 4))
+            #+end_src
+
+** Origami for super-agenda
+   #+begin_src emacs-lisp
+(use-package origami
+  :config
+  (defvar cu/org-super-agenda-auto-show-groups
+    '("Schedule" "Priority A items" "Priority B items"))
+
+  (defun cu/org-super-agenda-origami-fold-default ()
+    "Fold certain groups by default in Org Super Agenda buffer."
+    (forward-line 3)
+    (cl-loop do (origami-forward-toggle-node (current-buffer) (point))
+             while (origami-forward-fold-same-level (current-buffer) (point)))
+    (--each cu/org-super-agenda-auto-show-groups
+      (goto-char (point-min))
+      (when (re-search-forward (rx-to-string `(seq bol " " ,it)) nil t)
+        (origami-show-node (current-buffer) (point)))))
+
+  :hook ((org-agenda-mode . origami-mode)
+         (org-agenda-finalize . cu/org-super-agenda-origami-fold-default)))
+   #+end_src
 * ibuffer
 Enter a buffer overview by pressing =C-x C-b=.
 More info:
@@ -921,6 +1094,7 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 ;; Forward/inverse search with evince using D-bus.
 ;; Installation:
 ;; M-x package-install RET auctex RET
+(use-package auctex)
 (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
 (add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
 (setq TeX-source-correlate-method 'synctex)
@@ -1122,6 +1296,6 @@ Allow inline execution of specific babel modes.
 * Tail (provide)
  #+begin_src emacs-lisp
 (provide 'init)
-(setq custom-file "~/Sync/emacsconfig/custom.el")
+(setq custom-file "~/SynologyDrive/Drive/emacsconfig/custom.el")
 (load custom-file)
  #+end_src
