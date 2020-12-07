@@ -1,23 +1,24 @@
-Table of Contents
-=================
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
 
-   * [What](#What)
-   * [Installing pre-requisites](#installing-pre-requisites)
-      * [Installing pre-requisites for the core packages](#installing-pre-requisites-for-the-core-packages)
-         * [CMake-IDE](#cmake-idertags)
-            * [CMake](#cmake)
-            * [Clang/LLVM](#clangllvm)
-            * [cquery](#cquery)
-         * [Ivy](#ivy)
-   * [Installing Emacs 26](#installing-emacs-25)
-   * [Installing and setting up Cask](#installing-and-setting-up-cask)
-      * [Installing cask](#installing-cask)
-      * [Setting up a Cask project file for your Emacs configuration](#setting-up-a-cask-project-file-for-your-emacs-configuration)
-   * [Setting up Emacs](#setting-up-emacs)
-      * [Installing irony-server](#installing-irony-server)
-      * [Trying it all out](#trying-it-all-out)
-   * [Contributing](contributing)
-   * [Acknowledgements](#acknowledgements)
+- [Table of Contents](#table-of-contents)
+- [What](#what)
+- [Installing pre-requisites](#installing-pre-requisites)
+    - [CMake](#cmake)
+    - [Clang/LLVM](#clangllvm)
+    - [ccls](#ccls)
+    - [Ivy (Copied from dfrib)](#ivy-copied-from-dfrib)
+    - [Installing pre-requisites for the convenience packages](#installing-pre-requisites-for-the-convenience-packages)
+- [Installing and setting up Cask](#installing-and-setting-up-cask)
+    - [Installing cask](#installing-cask)
+- [Using this repo for applying the settings](#using-this-repo-for-applying-the-settings)
+- [Setting up Emacs](#setting-up-emacs)
+    - [Trying it all out](#trying-it-all-out)
+    - [Installing irony-server](#installing-irony-server)
+- [Contributing](#contributing)
+- [Acknowledgements](#acknowledgements)
+
+<!-- markdown-toc end -->
 
 # What
 
@@ -29,7 +30,7 @@ configuration without disclosing my account settings.
 I startet with org-mode around Jan 2019 so this might be a floating setup.
 For my small projects its nevertheless working...
 
-This is currently running on Ubuntu with emacs 26.2
+This is currently running on Ubuntu with emacs 27.1
 
 The core packages of my setup are:
 
