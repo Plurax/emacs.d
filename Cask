@@ -1,6 +1,10 @@
 (source gnu)
 (source melpa)
 
+
+;;  general
+(depends-on "general")
+
 ;;  google-translate
 (depends-on "google-translate")
 

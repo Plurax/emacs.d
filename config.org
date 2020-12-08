@@ -6,6 +6,10 @@
 #+OPTIONS: tex:imagemagick
 #+SETUPFILE: https://fniessen.github.io/org-html-themes/setup/theme-readtheorg.setup
 * Visual stuff and global settings
+** General
+   #+begin_src emacs-lisp
+(use-package general)
+   #+end_src
 ** Emacs server
 This will start the emacs server to provide interaction with org-protocol
 Create a global shortcut of your choice and call /usr/bin/emacsclient org-protocol://capture?template=t
@@ -1040,6 +1044,8 @@ With org reveal you can add an easy way to create reveal presentations directly 
 ** Origami for super-agenda
    #+begin_src emacs-lisp
 (use-package origami
+:general (:keymaps 'org-super-agenda-header-map
+                      "<tab>" #'origami-toggle-node)
   :config
   (defvar cu/org-super-agenda-auto-show-groups
     '("Schedule" "Priority A items" "Priority B items"))
