@@ -257,14 +257,22 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 (use-package google-translate
   :after eyebrowse
   :init
-  (defun google-translate--search-tkk () "Search TKK." (list 430675 2721866130))
   (setq google-translate-backend-method 'curl)
   (setq google-translate-default-source-language "de")
   (setq google-translate-default-target-language "en")
   (setq google-translate-translation-directions-alist '(("en" . "de") ("de" . "en")))
   :config
+  (when (and (string-match "0.11.14"
+                           (google-translate-version))
+             (>= (time-to-seconds)
+		         (time-to-seconds
+                  (encode-time 0 0 0 23 9 2018))))
+    (defun google-translate--get-b-d1 ()
+      ;; TKK='427110.1469889687'
+      (list 427110 1469889687)))
+  (defun google-translate--search-tkk () "Search TKK." (list 430675 2721866130))
   (progn
-  (define-key eyebrowse-mode-map (kbd "C-c g t") 'google-translate-smooth-translate)))
+    (define-key eyebrowse-mode-map (kbd "C-c g t") 'google-translate-smooth-translate)))
  #+end_src
 ** mqttclient-mode
  A self made MQTT client mode.
@@ -338,6 +346,11 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
    #+begin_src emacs-lisp
 (use-package which-key)
    #+end_src
+** ovpn management
+   #+begin_src emacs-lisp
+(use-package ovpn-mode)
+   #+end_src
+   
 * Major modes and programming setups
 ** go-mode
  #+begin_src emacs-lisp
@@ -355,7 +368,9 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 (use-package tide
   :ensure t
   :init
-  (setq tide-tsserver-executable "~/.nvm/versions/node/v12.16.3/bin/tsserver"))
+  ;;(setq tide-tsserver-executable "~/.nvm/versions/node/v12.16.3/bin")
+  (setq exec-path (append exec-path '("~/.nvm/versions/node/v12.16.3/bin")))
+  )
 
 (defun setup-tide-mode ()
 
@@ -382,29 +397,27 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 ** c++-mode
  #+begin_src emacs-lisp
 (use-package c++-mode
-  :after ccls
+;;  :after ccls
   :mode (("\\.cc\\'" . c++-mode)
          ("\\.h\\'" . c++-mode)
          ("\\.hpp\\'" . c++-mode)
          ("\\.tpp\\'" . c++-mode)
          ("\\.cpp\\'" . c++-mode))
-   ;; :bind (:map c++-mode-map
-   ;;             ("C-x c" . 'cmake-ide-compile))
   )
  #+end_src
 *** ccls
   #+begin_src emacs-lisp
-(use-package ccls
-  :after projectile lsp-mode
-  :custom
-  (ccls-args nil)
-  (ccls-executable (executable-find "ccls"))
-  (projectile-project-root-files-top-down-recurring
-   (append '("compile_commands.json" ".ccls")
-           projectile-project-root-files-top-down-recurring))
-  :config (push ".ccls-cache" projectile-globally-ignored-directories)
-  :hook ((c-mode c++-mode objc-mode cuda-mode) .
-         (lambda () (require 'ccls) (lsp))))
+;; (use-package ccls
+;;   :after projectile lsp-mode
+;;   :custom
+;;   (ccls-args nil)
+;;   (ccls-executable (executable-find "ccls"))
+;;   (projectile-project-root-files-top-down-recurring
+;;    (append '("compile_commands.json" ".ccls")
+;;            projectile-project-root-files-top-down-recurring))
+;;   :config (push ".ccls-cache" projectile-globally-ignored-directories)
+;;   :hook ((c-mode c++-mode objc-mode cuda-mode) .
+;;          (lambda () (require 'ccls) (lsp))))
 
   #+end_src
 *** cmake-mode
@@ -423,26 +436,26 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   #+end_src
 *** cmake-ide
   #+begin_src emacs-lisp
-(use-package cmake-ide
-  :after projectile
-  :hook (c++-mode . my/cmake-ide-find-project)
-  :preface
-  (defun my/cmake-ide-find-project ()
-    "Finds the directory of the project for cmake-ide."
-    (condition-case nil
-        (when (projectile-verify-file "CMakeLists.txt")
-          (with-eval-after-load 'projectile
-            (setq cmake-ide-project-dir (projectile-project-root))
-            (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build")))
-          (cmake-ide-load-db))))
-
-  (defun my/switch-to-compilation-window ()
-    "Switches to the *compilation* buffer after compilation."
-    (other-window 1))
-  :bind ([remap comment-region] . cmake-ide-compile)
-  :init (cmake-ide-setup)
-  :config (advice-add 'cmake-ide-compile :after #'my/switch-to-compilation-window))
-
+;;(use-package cmake-ide
+;;  :after projectile
+;;  :hook (c++-mode . my/cmake-ide-find-project)
+;;  :preface
+;;  (defun my/cmake-ide-find-project ()
+;;    "Finds the directory of the project for cmake-ide."
+;;    (condition-case nil
+;;        (when (projectile-verify-file "CMakeLists.txt")
+;;          (with-eval-after-load 'projectile
+;;            (setq cmake-ide-project-dir (projectile-project-root))
+;;            (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build")))
+;;          (cmake-ide-load-db))))
+;;
+;;  (defun my/switch-to-compilation-window ()
+;;    "Switches to the *compilation* buffer after compilation."
+;;    (other-window 1))
+;;  :bind ([remap comment-region] . cmake-ide-compile)
+;;  :init (cmake-ide-setup)
+;;  :config (advice-add 'cmake-ide-compile :after #'my/switch-to-compilation-window))
+;;
 
 ; from enberg on #emacs
 (setq compilation-finish-function
@@ -490,6 +503,8 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   (add-hook 'php-mode 'lsp)
   (add-hook 'css-mode 'lsp)
   (add-hook 'go-mode-hook 'lsp-deferred)
+  (add-hook 'c-mode-hook 'lsp)
+  (add-hook 'c++-mode-hook 'lsp)
   (add-hook 'web-mode 'lsp))
 
 (setq lsp-language-id-configuration '((java-mode . "java")
@@ -979,13 +994,13 @@ With org reveal you can add an easy way to create reveal presentations directly 
       ((agenda ""
                ((org-agenda-breadcrumbs-separator " ❱ ")
                 (org-agenda-remove-tags t)
-                (org-agenda-prefix-format "  %-2i %-13b")
-                (org-agenda-span 'day)
+                (org-agenda-start-on-weekday nil)
+                (org-agenda-start-day "+0d")
+                (org-agenda-span 2)
+;                (org-agenda-prefix-format "  %-2i %-13b")
                 (org-agenda-skip-scheduled-if-done t)
                 (org-agenda-skip-timestamp-if-done t)
                 (org-agenda-skip-deadline-if-done t)
-                (org-agenda-start-day "+0d")
-                (org-agenda-span 2)
                 (org-agenda-repeating-timestamp-show-all nil)
                 (org-agenda-remove-tags t)
                 (org-agenda-prefix-format "  %-3i  %-15b%t %s")
@@ -1014,28 +1029,6 @@ With org reveal you can add an easy way to create reveal presentations directly 
                       ("Chore" "Routine" "Daily"))))))))
       nil))))
 
-(setq org-agenda-skip-scheduled-if-done t
-      org-agenda-skip-deadline-if-done t
-      org-agenda-include-deadlines t
-      org-agenda-include-diary t
-      org-agenda-block-separator nil
-      org-agenda-compact-blocks t
-      org-agenda-start-with-log-mode t)
-
-(defun agenda-color-char ()
-  (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward "⚡" nil t)
-      (put-text-property (match-beginning 0) (match-end 0)
-                         'face '(:height 300 :foreground "gold2" :bold t))))
-
-;; (save-excursion
-;;   (goto-char (point-min))
-;;   (while (re-search-forward org-agenda-hidden-separator nil t)
-;;     (put-text-property (match-beginning 0) (- (match-end 0) 20)
-;;                        'face '(:foreground "red"))))
-  )
-
 (setq org-agenda-block-separator (string-to-char " "))
 (setq org-agenda-format-date 'my-org-agenda-format-date-aligned)
 
@@ -1062,25 +1055,7 @@ With org reveal you can add an easy way to create reveal presentations directly 
     (format " %-2s. %2d %s"
             dayname day monthname)))
 
-
 (add-hook 'org-mode-local-vars-hook #'(lambda () (eldoc-mode -1)))
-
-;; (add-hook! 'mu4e-view-mode-hook
-;;            #'olivetti-mode)
-
-;;(global-org-pretty-table-mode)
-
-;; custom set faces see custom.el
-
-(defun set-window-clean ()
-  (agenda-color-char)
-  (setq mode-line-format nil)
-  (set-frame-parameter nil 'font "Iosevka-18")
-  (setq header-line-format " ")
-  (set-face-attribute 'header-line nil :background "#00000000")
-  (set-window-margins (frame-selected-window) 4))
-
-
   #+end_src
 
 ** Origami for super-agenda
@@ -1102,8 +1077,9 @@ With org reveal you can add an easy way to create reveal presentations directly 
       (when (re-search-forward (rx-to-string `(seq bol " " ,it)) nil t)
         (origami-show-node (current-buffer) (point)))))
 
-  :hook ((org-agenda-mode . origami-mode)
-         (org-agenda-finalize . cu/org-super-agenda-origami-fold-default)))
+  :hook ((org-agenda-mode . origami-mode))
+;         (org-agenda-finalize . cu/org-super-agenda-origami-fold-default))
+  )
    #+end_src
 * ibuffer
 Enter a buffer overview by pressing =C-x C-b=.

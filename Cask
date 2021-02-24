@@ -1,6 +1,8 @@
 (source gnu)
 (source melpa)
 
+;; vpn mode
+(depends-on "ovpn-mode")
 
 ;;  general
 (depends-on "general")
