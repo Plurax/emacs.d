@@ -929,14 +929,9 @@ Syncing into gmail was not yet in my scope.
         cfw:fchar-top-left-corner  ?┏
         cfw:fchar-top-right-corner ?┓)
  #+end_src
-** org-jira
- #+begin_src emacs-lisp
-(use-package org-jira)
-
-;; Using bullets instead of *
- #+end_src
 ** org-bullets-mode
  #+begin_src emacs-lisp
+;; Using bullets instead of *
 (use-package org-superstar
   :config
   (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
@@ -955,7 +950,7 @@ Syncing into gmail was not yet in my scope.
   :ensure t
   :hook
   (after-init . org-roam-mode)
-  (require 'org-roam-protocol)
+;  (require 'org-roam-protocol)
   :bind (:map org-roam-mode-map
               (("C-c n l" . org-roam)
                ("C-c n f" . org-roam-find-file)
@@ -964,6 +959,23 @@ Syncing into gmail was not yet in my scope.
               (("C-c n i" . org-roam-insert))
               (("C-c n I" . org-roam-insert-immediate))))
   #+end_src
+** org-roam-server
+ #+begin_src emacs-lisp
+(use-package org-roam-server
+  :ensure t
+  :config
+  (setq org-roam-server-host "127.0.0.1"
+        org-roam-server-port 18080
+        org-roam-server-authenticate nil
+        org-roam-server-export-inline-images t
+        org-roam-server-serve-files nil
+        org-roam-server-served-file-extensions '("pdf" "mp4" "ogv")
+        org-roam-server-network-poll t
+        org-roam-server-network-arrows nil
+        org-roam-server-network-label-truncate t
+        org-roam-server-network-label-truncate-length 60
+        org-roam-server-network-label-wrap-length 20))
+ #+end_src
 
 ** ox-reveal
 With org reveal you can add an easy way to create reveal presentations directly from your org file.
