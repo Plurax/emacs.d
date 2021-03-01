@@ -949,6 +949,21 @@ Syncing into gmail was not yet in my scope.
   :after org
   :custom (org-contacts-files '("~/SynologyDrive/Drive/contacts/contacts.org")))
  #+end_src
+** org roam
+   #+begin_src emacs-lisp
+(use-package org-roam
+  :ensure t
+  :hook
+  (after-init . org-roam-mode)
+  (require 'org-roam-protocol)
+  :bind (:map org-roam-mode-map
+              (("C-c n l" . org-roam)
+               ("C-c n f" . org-roam-find-file)
+               ("C-c n g" . org-roam-graph))
+              :map org-mode-map
+              (("C-c n i" . org-roam-insert))
+              (("C-c n I" . org-roam-insert-immediate))))
+  #+end_src
 
 ** ox-reveal
 With org reveal you can add an easy way to create reveal presentations directly from your org file.

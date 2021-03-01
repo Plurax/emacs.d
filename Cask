@@ -28,6 +28,7 @@
 (depends-on "org-super-agenda")
 (depends-on "org-toggl" :git "https://github.com/mbork/org-toggl.git")
 (depends-on "org-journal")
+(depends-on "org-roam")
 (depends-on "origami")
 ;(depends-on "org-reveal" :git "https://github.com/yjwen/org-reveal.git")
 (depends-on "ox-reveal")
