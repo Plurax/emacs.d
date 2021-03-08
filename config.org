@@ -834,9 +834,10 @@ This is adding some discipline. Keep your commit messages short.
  This is used for my journal. In combination with toggl I use it for clocking time onto projects.
  #+begin_src emacs-lisp
 (use-package org-journal
-:after org 
-  :defer t
-)
+  :after org 
+  :bind
+  ("C-c n j" . org-journal-new-entry))
+(setq org-journal-agenda-integration t)
  #+end_src
 ** TODO org-vcard
  #+begin_src emacs-lisp
@@ -900,19 +901,6 @@ Syncing into gmail was not yet in my scope.
 
 ; DSID 201066911 https://p45-caldav.icloud.com/DSID/calendars/CALNAME
 
-#+end_src
-
-** TODO caldav
-
- #+begin_src emacs-lisp
-(use-package org-caldav
-:config
-(setq org-caldav-calendars
-'((:url "https://p45-caldav.icloud.com/201066911/calendars/Kalender" 
-:calendar-id "" :files ("~/SynologyDrive/Drive/org/icloud.org")
-:inbox "~/org/ionbox.org")
-       )
-))  
 #+end_src
 
 ** calfw-org
