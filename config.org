@@ -864,6 +864,12 @@ Syncing into gmail was not yet in my scope.
 ** org-protocol
  #+begin_src emacs-lisp
 (require 'org-protocol)
+
+(add-to-list 'org-protocol-protocol-alist
+             '("Add journal entry"
+               :protocol "roam-journal"
+               :function org-journal-new-entry
+               :kill-client t))
  #+end_src
 ** org-protocol-capture-html
  #+begin_src emacs-lisp
