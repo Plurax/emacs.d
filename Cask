@@ -62,6 +62,9 @@
 (depends-on "json-mode")
 (depends-on "flymake-json" :git "https://github.com/purcell/flymake-json.git")
 
+;; Web
+(depends-on "web-mode")
+
 ;; js
 (depends-on "tide")
 (depends-on "typescript-mode")
