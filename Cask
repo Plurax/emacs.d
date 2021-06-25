@@ -72,6 +72,9 @@
 ;; react JSX
 (depends-on "rjsx-mode")
 
+;; npm mode
+(depends-on "npm-mode")
+
 (depends-on "projectile")
 
 ;; needed for path changes

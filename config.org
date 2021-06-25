@@ -706,6 +706,10 @@ This is adding some discipline. Keep your commit messages short.
                      (setq-local fill-column 72)))
   )
 #+end_src
+* npm mode
+  #+begin_src emacs-lisp
+(use-package npm-mode)
+  #+end_src
 * counsel
 #+begin_src emacs-lisp
 (use-package counsel
@@ -1135,7 +1139,6 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 ;; Forward/inverse search with evince using D-bus.
 ;; Installation:
 ;; M-x package-install RET auctex RET
-(use-package auctex)
 (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
 (add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
 (setq TeX-source-correlate-method 'synctex)
