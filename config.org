@@ -1237,7 +1237,8 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
         mu4e-headers-attach-mark '("a" . "⎙")
         mu4e-headers-encrypted-mark '("x" . "🔒")
         mu4e-headers-signed-mark '("s" . "🔒")
-        mu4e-headers-unread-mark '("u" . "❗"))
+        mu4e-headers-unread-mark '("u" . "❗")
+        mu4e-view-show-addresses 't))
 
 (define-key mu4e-headers-mode-map (kbd "C-c c") 'org-mu4e-store-and-capture)
 (define-key mu4e-view-mode-map    (kbd "C-c c") 'org-mu4e-store-and-capture)
