@@ -943,13 +943,14 @@ Syncing into gmail was not yet in my scope.
   :hook
   (after-init . org-roam-mode)
   :bind (:map org-roam-mode-map
-              (("C-c n l" . org-roam)
-               ("C-c n f" . org-roam-find-file)
+              (("C-c n l" . org-roam-buffer-toggl)
+               ("C-c n f" . org-roam-node-find)
                ("C-c n g" . org-roam-graph))
               :map org-mode-map
-              (("C-c n i" . org-roam-insert))
+              (("C-c n i" . org-roam-node-insert))
               (("C-c n I" . org-roam-insert-immediate)))
   :init
+  (setq org-roam-v2-ack t)
   (require 'org-roam-protocol))
 
   #+end_src
