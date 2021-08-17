@@ -20,15 +20,16 @@
 ;; nov.el for epub reading
 (depends-on "nov")
 
-;; auctex
-(depends-on "auctex")
-
 
 ;; toggl
 (depends-on "org-super-agenda")
 (depends-on "org-toggl" :git "https://github.com/mbork/org-toggl.git")
 (depends-on "org-journal")
 (depends-on "org-roam")
+(depends-on "org-roam-ui" :git "https://github.com/org-roam/org-roam-ui.git")
+(depends-on "websocket")
+(depends-on "simple-httpd")
+                        
 (depends-on "org-roam-server")
 (depends-on "origami")
 ;(depends-on "org-reveal" :git "https://github.com/yjwen/org-reveal.git")

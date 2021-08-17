@@ -953,24 +953,18 @@ Syncing into gmail was not yet in my scope.
   (require 'org-roam-protocol))
 
   #+end_src
-** org-roam-server
- #+begin_src emacs-lisp
-(use-package org-roam-server
-  :ensure t
-  :config
-  (setq org-roam-server-host "127.0.0.1"
-        org-roam-server-port 18080
-        org-roam-server-authenticate nil
-        org-roam-server-export-inline-images t
-        org-roam-server-serve-files nil
-        org-roam-server-served-file-extensions '("pdf" "mp4" "ogv")
-        org-roam-server-network-poll t
-        org-roam-server-network-arrows nil
-        org-roam-server-network-label-truncate t
-        org-roam-server-network-label-truncate-length 60
-        org-roam-server-network-label-wrap-length 20))
- #+end_src
+** org-roam-ui
+#+begin_src emacs-lisp
+(use-package "websocket"
+  :after org-roam)
+(use-package "simple-httpd"
+  :after org-roam)
 
+
+(add-to-list 'load-path "~/opensource/org-roam-ui")
+(load-library "org-roam-ui")
+
+#+end_src
 ** ox-reveal
 With org reveal you can add an easy way to create reveal presentations directly from your org file.
 
