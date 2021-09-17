@@ -466,6 +466,10 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
       (tide-setup)))
   (add-hook 'web-mode-hook 'my/tsx-setup))
 #+end_src
+** vue
+   #+begin_src emacs-lisp
+(use-package vue-mode)
+   #+end_src
 ** rsjx mode
  #+begin_src emacs-lisp
 (use-package rjsx-mode

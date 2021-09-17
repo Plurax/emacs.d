@@ -73,6 +73,10 @@
 ;; react JSX
 (depends-on "rjsx-mode")
 
+
+;; vue
+(depends-on "vue-mode")
+
 ;; npm mode
 (depends-on "npm-mode")
 
