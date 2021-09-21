@@ -76,6 +76,7 @@
 
 ;; vue
 (depends-on "vue-mode")
+(depends-on "vue-html-mode")
 
 ;; npm mode
 (depends-on "npm-mode")
