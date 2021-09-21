@@ -9,7 +9,12 @@
 ** General
    #+begin_src emacs-lisp
 (use-package general)
-   #+end_src
+; Keep temp and lock files out of my way...
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
+      #+end_src
 ** Emacs server
 This will start the emacs server to provide interaction with org-protocol
 Create a global shortcut of your choice and call /usr/bin/emacsclient org-protocol://capture?template=t
@@ -469,6 +474,7 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 ** vue
    #+begin_src emacs-lisp
 (use-package vue-mode)
+(use-package vue-html-mode)
    #+end_src
 ** rsjx mode
  #+begin_src emacs-lisp
