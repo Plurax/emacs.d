@@ -300,12 +300,6 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
  #+begin_src emacs-lisp
 (use-package flymake-json)
  #+end_src
-** confluence
- #+begin_src emacs-lisp
-(use-package confluence
-  :config
-  (setq confluence-url "http://confluence.tarent.de/rpc/xmlrpc"))
- #+end_src
 ** kill-ring-search
  #+begin_src emacs-lisp
 (use-package kill-ring-search)
@@ -775,7 +769,6 @@ This is adding some discipline. Keep your commit messages short.
   (org-babel-do-load-languages
    'org-babel-load-languages
    '(;; other Babel languages
-     (restclient . t)
      (python . t)
      (shell . t)
      (C . t)
@@ -1219,8 +1212,6 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
 ; mu4e Mails
 (require 'mu4e)
-(require 'mu4e-icalendar)
-
 
 (setq   mu4e-headers-first-child-prefix '("\\" . "┗▶")
         mu4e-headers-duplicate-prefix '("=" . "≡")
@@ -1279,14 +1270,14 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 * Helper functions
 This can be used with REST Client mode for retrieving user/pass to avoid pasting
 ** Create auth string from prompt
-With this function you can prompt for user and password. This is usefull in restclientmode to avoid pasting 
+With this function you can prompt for user and password. This is usefull in verb to avoid pasting 
 your credentials into the REST API files. Call this from within the mode via lisp execution:
  #+begin_src :tangle no
 :myAuth := (getAuthString)
 :device_auth =  <<
 Authorization: Basic :myAuth
 #+end_src
-Place this into a 
+Verb can also use this.
  #+begin_src emacs-lisp
 (defun getAuthString ()
   "Retrieve Auth header for REST Client"
@@ -1332,8 +1323,8 @@ The current setup is =cu/org-agenda-context=
 Allow inline execution of specific babel modes.
  #+begin_src emacs-lisp
 (defun cu/org-confirm-babel-evaluate (lang body)
-  "Do not ask for confirmation on code execution in org BODY for LANG restclient."
-  (not (member lang '("restclient" "shell" "latex"))))
+  "Do not ask for confirmation on code execution in org BODY for LANG."
+  (not (member lang '("latex"))))
 #+end_src
 
 * Tail (provide)

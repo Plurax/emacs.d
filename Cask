@@ -49,9 +49,6 @@
 (depends-on "cask")
 (depends-on "cask-mode")
 
-;; Confluence
-(depends-on "confluence")
-
 (depends-on "kill-ring-search")
 
 ;; go
@@ -87,9 +84,6 @@
 
 ;; openAPI
 (depends-on "yaml-mode")
-;(depends-on "openapi-yaml-mode"
-;            :git "https://github.com/magoyette/openapi-yaml-mode.git"
-;            :branch "master")
 
 ;; text-scale
 (depends-on "default-text-scale")
@@ -101,7 +95,6 @@
 (depends-on "org-plus-contrib" "9.0")
 (depends-on "helm")
 (depends-on "org-clock-convenience")
-(depends-on "ob-restclient" :git "https://github.com/alf/ob-restclient.el.git")
 (depends-on "verb")
 
 (depends-on "ob-go")
@@ -191,6 +184,7 @@
 (depends-on "chocolate-theme")
 (depends-on "tron-legacy-theme")
 (depends-on "doom-modeline")
+(depends-on "gotham-theme")
 
 ;; Highlight word under point when idle
 (depends-on "idle-highlight-mode")
@@ -204,9 +198,6 @@
 ;; Common
 (depends-on "bind-key")
 (depends-on "dash")
-
-;; REST Client
-(depends-on "restclient")
 
 ;; Smartparens (smart handling of parenthesis pairs)
 (depends-on "smartparens")
