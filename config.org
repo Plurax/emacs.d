@@ -1339,3 +1339,31 @@ Allow inline execution of specific babel modes.
 (setq custom-file "~/SynologyDrive/Drive/emacsconfig/custom.el")
 (load custom-file)
  #+end_src
+
+* init Windowconfig
+#+begin_src emacs-lisp
+(defun start-all-eyebrowse-workspaces ()
+    ;; study lisp workspace
+    (eyebrowse-switch-to-window-config-1)
+    (eyebrowse-rename-window-config 1 "Mail")
+
+    ;; Org
+    (eyebrowse-switch-to-window-config-2)
+    (eyebrowse-rename-window-config 2 "Org")
+
+    ;; Code
+    (eyebrowse-switch-to-window-config-3)
+    (eyebrowse-rename-window-config 3 "Code")
+    
+    ;; Docs
+    (eyebrowse-switch-to-window-config-4)
+    (eyebrowse-rename-window-config 4 "Docs")
+    
+    ;; Misc
+    (eyebrowse-switch-to-window-config-5)
+    (eyebrowse-rename-window-config 5 "Misc")
+
+    (eyebrowse-switch-to-window-config-1)
+    )
+(start-all-eyebrowse-workspaces)
+#+end_src
