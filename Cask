@@ -30,7 +30,6 @@
 (depends-on "websocket")
 (depends-on "simple-httpd")
                         
-(depends-on "org-roam-server")
 (depends-on "origami")
 ;(depends-on "org-reveal" :git "https://github.com/yjwen/org-reveal.git")
 (depends-on "ox-reveal")
@@ -135,7 +134,6 @@
 
 
 (depends-on "lsp-java")
-(depends-on "company-lsp")
 (depends-on "company-irony")
 (depends-on "company-irony-c-headers")
 (depends-on "ccls")

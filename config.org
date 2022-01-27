@@ -612,13 +612,6 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   )
 
 #+end_src
-* company-lsp
-#+begin_src emacs-lisp
-;; (use-package company-lsp
-;;   :ensure t
-;;   :init (push 'company-lsp company-backends)
-;;   )
-#+end_src
 * yasnippet
 #+begin_src emacs-lisp
 (use-package yasnippet :ensure t)
@@ -1014,7 +1007,7 @@ With org reveal you can add an easy way to create reveal presentations directly 
                 (org-agenda-remove-tags t)
                 (org-agenda-start-on-weekday nil)
                 (org-agenda-start-day "+0d")
-                (org-agenda-span 2)
+                (org-agenda-span 'day)
 ;                (org-agenda-prefix-format "  %-2i %-13b")
                 (org-agenda-skip-scheduled-if-done t)
                 (org-agenda-skip-timestamp-if-done t)
@@ -1032,7 +1025,8 @@ With org reveal you can add an easy way to create reveal presentations directly 
                     (:name "⚡ Important:" :tag "Important" :priority "A" :order 6)
                     (:name "⚡ Due Today:" :deadline today :order 2)
                     (:name "⚡ Overdue:" :deadline past :order 7)
-                    (:name "⚡ Due Soon:" :deadline future :order 8)
+                    (:name "⚡ Due Soon:" :deadline ((before)
+                                                     (org-read-date nil nil "+5")) :order 8)
                     (:name "⚡ Waiting:" :todo "WAITING" :order 20)
                     (:name "⚡ Projects:" :auto-category t :todo
                            ("TODO" "ONGOING")
