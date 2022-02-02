@@ -1093,6 +1093,11 @@ With org reveal you can add an easy way to create reveal presentations directly 
 ;         (org-agenda-finalize . cu/org-super-agenda-origami-fold-default))
   )
    #+end_src
+
+** org-drill flash cards
+   #+begin_src emacs-lisp
+(use-package org-drill)
+   #+end_src
 * ibuffer
 Enter a buffer overview by pressing =C-x C-b=.
 More info:

@@ -27,6 +27,7 @@
 (depends-on "org-journal")
 (depends-on "org-roam")
 (depends-on "org-roam-ui" :git "https://github.com/org-roam/org-roam-ui.git")
+(depends-on "org-drill")
 (depends-on "websocket")
 (depends-on "simple-httpd")
                         
