@@ -1095,8 +1095,11 @@ With org reveal you can add an easy way to create reveal presentations directly 
    #+end_src
 
 ** org-drill flash cards
+Setting entry-empty-p function to nil will avoid ignoring empty bodied drill items.
    #+begin_src emacs-lisp
-(use-package org-drill)
+(use-package org-drill
+  :config
+  (defun org-drill-entry-empty-p () nil))
    #+end_src
 * ibuffer
 Enter a buffer overview by pressing =C-x C-b=.
