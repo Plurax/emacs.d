@@ -361,6 +361,9 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   (add-hook 'before-save-hook #'lsp-organize-imports t t))
 (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
 
+;; Start LSP Mode and YASnippet mode
+(add-hook 'go-mode-hook #'lsp-deferred)
+(add-hook 'go-mode-hook #'yas-minor-mode)
  #+end_src
 ** tide
  #+begin_src emacs-lisp
@@ -453,17 +456,21 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   #+end_src
 ** web mode
 #+begin_src emacs-lisp
-(use-package web-mode
-  :mode
-  ("\\.html?$". web-mode)
-  ("\\.css$". web-mode)
-  ("\\.tsx$". web-mode)
-  :config
-  (defun my/tsx-setup ()
-    (when (and (stringp buffer-file-name)
-               (string-match "\\.tsx$" buffer-file-name))
-      (tide-setup)))
-  (add-hook 'web-mode-hook 'my/tsx-setup))
+  (use-package web-mode
+    :mode
+    ("\\.html?$". web-mode)
+    ("\\.css$". web-mode)
+    ("\\.tsx$". web-mode)
+    ("\\.jsx\\'" . web-mode)
+    :config
+    (when (fboundp 'lsp-typescript-javascript-tsx-jsx-activate-p)
+      (fmakunbound 'lsp-typescript-javascript-tsx-jsx-activate-p))
+  
+    (defun lsp-typescript-javascript-tsx-jsx-activate-p (filename &optional _)
+      "Check if the javascript-typescript language server should be enabled based on FILENAME."
+      (or (string-match-p (rx (one-or-more anything) "." (or "ts" "js") (opt "x") string-end) filename)
+          (and (derived-mode-p 'js-mode 'js2-mode 'typescript-mode 'web-mode)
+               (not (derived-mode-p 'json-mode))))))
 #+end_src
 ** vue
    #+begin_src emacs-lisp
@@ -607,9 +614,8 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 * company
 #+begin_src emacs-lisp
 (use-package company
-  :config (global-company-mode)
-  (setq company-transformers nil company-lsp-async t company-lsp-cache-candidates nil)  
-  )
+  :config
+  (setq lsp-completion-provider :capf))
 
 #+end_src
 * yasnippet
@@ -647,28 +653,6 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; elpy (python IDE-ish features)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-#+end_src
-* elpy
-#+begin_src emacs-lisp
-(use-package elpy
-  :after company flycheck
-  :init (defun goto-def-or-rgrep ()
-          "Go to definition of thing at point or do an rgrep in project if that fails"
-          (interactive)
-          (condition-case nil (elpy-goto-definition)
-            (error (elpy-rgrep-symbol (thing-at-point 'symbol)))))
-  ;; Custom keybindings.
-  :bind (:map elpy-mode-map
-              ("<home>" . 'goto-def-or-rgrep)
-              ("<prior>" . 'pop-tag-mark)
-              ("<next>" . 'elpy-goto-definition))
-  :config
-  (elpy-enable)
-  ;; Use flycheck not flymake with elpy.
-  (when (require 'flycheck nil t)
-    (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-    (add-hook 'elpy-mode-hook 'flycheck-mode))
-  )
 #+end_src
 * ivy
 #+begin_src emacs-lisp
@@ -775,6 +759,7 @@ This is adding some discipline. Keep your commit messages short.
      (go . t)
      (latex . t)))
   (setq org-babel-python-command "python3")
+  (setq py-python-command "python3")
   (setq org-todo-keywords
         '((sequence "TODO" "ONGOING" "WAITING" "|" "DONE" "DELEGATED" "CANCELED")))
   (setq org-default-notes-file (concat "~/notes/inbox.org"))
