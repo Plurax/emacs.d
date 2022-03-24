@@ -659,9 +659,6 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 ;; Autoindent using google style guide
 (add-hook 'c-mode-common-hook 'google-make-newline-indent)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; elpy (python IDE-ish features)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #+end_src
 * ivy
 #+begin_src emacs-lisp
@@ -1089,8 +1086,11 @@ With org reveal you can add an easy way to create reveal presentations directly 
    #+end_src
 
 ** org-drill flash cards
+Setting entry-empty-p function to nil will avoid ignoring empty bodied drill items.
    #+begin_src emacs-lisp
-(use-package org-drill)
+(use-package org-drill
+  :config
+  (defun org-drill-entry-empty-p () nil))
    #+end_src
 * ibuffer
 Enter a buffer overview by pressing =C-x C-b=.
