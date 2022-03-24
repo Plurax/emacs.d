@@ -474,7 +474,11 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 #+end_src
 ** vue
    #+begin_src emacs-lisp
-(use-package vue-mode)
+(use-package vue-mode
+  :mode "\\.vue\\'"
+  :config
+  (add-hook 'vue-mode-hook #'lsp))
+
 (use-package vue-html-mode)
    #+end_src
 ** rsjx mode
@@ -498,7 +502,7 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 (setq lsp-prefer-flymake nil)
 
 (use-package lsp-mode
-  :init (setq lsp-keymap-prefix "s-c")
+  :init (setq lsp-keymap-prefix "C-c l")
   :commands (lsp lsp-deferred)
   :ensure t
   :config
@@ -510,7 +514,11 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   (add-hook 'go-mode-hook 'lsp-deferred)
   (add-hook 'c-mode-hook 'lsp)
   (add-hook 'c++-mode-hook 'lsp)
-  (add-hook 'web-mode 'lsp))
+  (add-hook 'web-mode 'lsp)
+  (add-hook 'vue 'lsp)
+  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+  )
 
 (setq lsp-language-id-configuration '((java-mode . "java")
 (python-mode . "python")
@@ -533,7 +541,8 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 ** lsp-ui
  #+begin_src emacs-lisp
 (use-package lsp-ui
-  :ensure t)
+  :ensure t
+)
 
 (setq lsp-ui-doc-enable t
       lsp-ui-peek-enable t
