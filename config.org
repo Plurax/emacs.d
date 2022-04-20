@@ -1,3 +1,4 @@
+
 #+TITLE: My Emacs Configuration
 #+AUTHOR: Christoph Uhlich
 #+EMAIL: christoph@familie-uhlich.de
@@ -231,6 +232,9 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
  #+end_src
 ** google-translate
  #+begin_src emacs-lisp
+; this is a dependency of translate - if not there google-translate will cause a load error
+(use-package popup)
+
 (use-package google-translate
   :after eyebrowse
   :init
@@ -578,7 +582,6 @@ This is adding some discipline. Keep your commit messages short.
      (shell . t)
      (C . t)
      (lisp . t)
-     (go . t)
      (latex . t)))
   (setq org-babel-python-command "python3")
   (setq py-python-command "python3")
@@ -641,10 +644,6 @@ This is adding some discipline. Keep your commit messages short.
 ** TODO org-vcard
  #+begin_src emacs-lisp
 (use-package org-vcard)
- #+end_src
-** org-babel for go
- #+begin_src emacs-lisp
-(use-package ob-go)
  #+end_src
 ** org-gcal
 I am using gmail for work. But I currently ony use synching downwards.
