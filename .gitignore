@@ -31,3 +31,9 @@ workspace
 .org-id-locations
 transient
 network-security.data
+/config.el
+/forge-database.sqlite
+/org-roam.db
+/persist/
+/var/
+/.org-generic-id-locations
