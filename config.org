@@ -1,4 +1,3 @@
-
 #+TITLE: My Emacs Configuration
 #+AUTHOR: Christoph Uhlich
 #+EMAIL: christoph@familie-uhlich.de
@@ -33,7 +32,7 @@ Assure org-protocol module being active!
 ;(add-hook 'server-switch-hook 'px-raise-frame-and-give-focus)
 
 (defadvice raise-frame (after make-it-work (&optional frame) activate)
-    "Work around some bug? in raise-frame/Emacs/GTK/Metacity/something.
+  "Work around some bug? in raise-frame/Emacs/GTK/Metacity/something.
      Katsumi Yamaoka posted this in
      http://article.gmane.org/gmane.emacs.devel:39702"
      (call-process
@@ -571,6 +570,7 @@ This is adding some discipline. Keep your commit messages short.
 * Org
 ** org mode
  #+begin_src emacs-lisp
+(use-package verb)
 (use-package org
   :bind (("C-c M" . 'org-agenda-view))
   :config
@@ -583,6 +583,7 @@ This is adding some discipline. Keep your commit messages short.
      (C . t)
      (lisp . t)
      (latex . t)))
+  (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
   (setq org-babel-python-command "python3")
   (setq py-python-command "python3")
   (setq org-todo-keywords
@@ -681,17 +682,31 @@ Syncing into gmail was not yet in my scope.
    #+begin_src emacs-lisp
 (use-package org-roam
   :ensure t
-  :hook
-  (after-init . org-roam-mode)
-  :bind (:map org-mode-map
-              (("C-c n l" . org-roam-buffer-toggle)
-               ("C-c n f" . org-roam-node-find)
-               ("C-c n g" . org-roam-graph)
-               ("C-c n i" . org-roam-node-insert)
-               ("C-c n I" . org-roam-insert-immediate)))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n g" . org-roam-graph)
+         ("C-c n I" . org-roam-insert-immediate)
+         :map org-mode-map
+         ("C-M-i" . completion-at-point)
+         :map org-roam-dailies-map
+         ("Y" . org-roam-dailies-capture-yesterday)
+         ("T" . org-roam-dailies-capture-tomorrow))
+  :custom
+  (org-roam-completion-everywhere t)
   :init
   (setq org-roam-v2-ack t)
-  (require 'org-roam-protocol))
+  (require 'org-roam-protocol)
+
+  (setq myroamfiles (directory-files "~/SynologyDrive/Drive/org/roam" t "org$"))
+  (setq org-refile-targets '((org-agenda-files :maxlevel . 5) (myroamfiles :maxlevel . 5)))
+  ; add refile targets added in custom-el to refile between standard org and roam files
+  (setq org-refile-allow-creating-parent-nodes 'confirm)
+  :bind-keymap
+  ("C-c n d" . org-roam-dailies-map)
+  :config
+  (require 'org-roam-dailies) ;; Ensure the keymap is available
+  (org-roam-db-autosync-mode))
 
   #+end_src
 ** org-roam-ui
