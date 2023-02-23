@@ -685,7 +685,7 @@ Syncing into gmail was not yet in my scope.
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
          ("C-c n i" . org-roam-node-insert)
-         ("C-c n g" . org-roam-graph)
+         ("C-c n g" . org-roam-ui-mode)
          ("C-c n I" . org-roam-insert-immediate)
          :map org-mode-map
          ("C-M-i" . completion-at-point)
@@ -855,9 +855,9 @@ With org reveal you can add an easy way to create reveal presentations directly 
 ** org-drill flash cards
 Setting entry-empty-p function to nil will avoid ignoring empty bodied drill items.
    #+begin_src emacs-lisp
-(use-package org-drill
-  :config
-  (defun org-drill-entry-empty-p () nil))
+;(use-package org-drill
+;  :config
+;  (defun org-drill-entry-empty-p () nil))
    #+end_src
 * ibuffer
 Enter a buffer overview by pressing =C-x C-b=.
