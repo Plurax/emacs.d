@@ -14,30 +14,25 @@
       `((".*" . ,temporary-file-directory)))
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
+
+;; load own listp sources from sync folder
+(add-to-list 'load-path "~/SynologyDrive/Drive/emacsconfig")
+
       #+end_src
 ** Emacs server
 This will start the emacs server to provide interaction with org-protocol
 Create a global shortcut of your choice and call /usr/bin/emacsclient org-protocol://capture?template=t
 This will act like calling C-c within Emacs, but bringing Emacs to scope and youre
 able to add your todo instantly from any other application...
-Assure org-protocol module being active!
+Assure org-protocol module being active! Attention - this assumes you are running only one Emacs window(!)
 #+begin_src emacs-lisp
 (server-start)
-(defun px-raise-frame-and-give-focus ()
-    (set-mouse-pixel-position (selected-frame) 4 4)
-    (raise-frame selected-frame)
-;    (x-focus-frame (selected-frame))
-    (select-frame-set-input-focus (selected-frame))
-   )
-;(add-hook 'server-switch-hook 'px-raise-frame-and-give-focus)
-
 (defadvice raise-frame (after make-it-work (&optional frame) activate)
   "Work around some bug? in raise-frame/Emacs/GTK/Metacity/something.
      Katsumi Yamaoka posted this in
      http://article.gmane.org/gmane.emacs.devel:39702"
      (call-process
-     "wmctrl" nil nil nil "-i" "-R"
-     (frame-parameter (or frame (selected-frame)) 'outer-window-id)))
+     "wmctrl" nil nil nil "-a" "Emacs"))
 (add-hook 'server-switch-hook 'raise-frame)
 #+end_src
 ** Add short cut for fullscreen toggle 
@@ -222,6 +217,10 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
    #+begin_src emacs-lisp
 (add-hook 'prog-mode-hook 'linum-mode)
    #+end_src
+** quelpa for git fetch packagings
+#+begin_src emacs-lisp
+(require 'quelpa)
+#+end_src
 * Misc packages
 ** docker
  #+begin_src emacs-lisp
@@ -288,7 +287,6 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
    #+begin_src emacs-lisp
 (use-package ovpn-mode)
    #+end_src
-   
 * Major modes and programming setups
 ** go-mode
  #+begin_src emacs-lisp
@@ -1004,11 +1002,10 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 (setq org-mu4e-link-query-in-headers-mode nil
       org-mu4e-convert-to-html t)
 
-
 ;rename files when moving
 ;;NEEDED FOR MBSYNC
 (setq mu4e-change-filenames-when-moving t)
-(setq mu4e-maildir "~/Maildir")
+;;(setq mu4e-maildir "~/Maildir")
 
 
 (setq mail-user-agent 'mu4e-user-agent)
@@ -1033,8 +1030,24 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 
 ;; don't keep message buffers around
 (setq message-kill-buffer-on-exit t)
-(require 'org-mu4e)
+(load-library "mu4e-contexts.el")
+(add-to-list 'load-path "~/opensource/mu4e-dashboard")
+(require 'mu4e-dashboard)
 
+#+end_src
+* AWS
+#+begin_src emacs-lisp
+;; (use-package aws-mode
+;;   :bind ;; some functions which make sense to bind to something
+;;   ("C-c a a" . aws)
+;;   ("C-c a l" . aws-login)
+;;   ("C-c a n" . aws-organizations-get-account-name)
+;;   ("C-c a i" . aws-organizations-get-account-id)
+;;   :load-path "~/opensource/aws.el"
+;;   :custom
+;;   (aws-vault t) ;; when t use aws-vault cmd to get into aws session
+;;   (aws-output "json") ;; optional: yaml, json, text (default: yaml)
+;;   (aws-organizations-account "root")) ;; profile of organizations account. organizations commands are automatically executed against this account, when specified
 
 #+end_src
 * Helper functions
@@ -1100,8 +1113,6 @@ Allow inline execution of specific babel modes.
 * Tail (provide)
  #+begin_src emacs-lisp
 (provide 'init)
-(setq custom-file "~/SynologyDrive/Drive/emacsconfig/custom.el")
-(load custom-file)
  #+end_src
 
 * init Windowconfig
@@ -1128,6 +1139,14 @@ Allow inline execution of specific babel modes.
     (eyebrowse-rename-window-config 5 "Misc")
 
     (eyebrowse-switch-to-window-config-1)
+    (delete-other-windows)
+    (split-window-right 40)
+    (other-window 1)
+    (mu4e)
+    (mu4e~headers-jump-to-maildir "INBOX")
+    (other-window 1)
+    (mu4e-dashboard)
     )
-(start-all-eyebrowse-workspaces)
+
+(add-hook 'window-setup-hook 'start-all-eyebrowse-workspaces)
 #+end_src
