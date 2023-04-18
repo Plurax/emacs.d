@@ -614,7 +614,6 @@ This is adding some discipline. Keep your commit messages short.
     (shell-command "canberra-gtk-play --file=/usr/share/sounds/gnome/default/alerts/glass.ogg"))
   )
 
-
 ;; toggl
  #+end_src
 ** org-toggl
@@ -1033,7 +1032,6 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 (load-library "mu4e-contexts.el")
 (add-to-list 'load-path "~/opensource/mu4e-dashboard")
 (require 'mu4e-dashboard)
-
 #+end_src
 * AWS
 #+begin_src emacs-lisp
@@ -1117,7 +1115,7 @@ Allow inline execution of specific babel modes.
 
 * init Windowconfig
 #+begin_src emacs-lisp
-(defun start-all-eyebrowse-workspaces ()
+(defun my-initial-window-setup ()
     ;; study lisp workspace
     (eyebrowse-switch-to-window-config-1)
     (eyebrowse-rename-window-config 1 "Mail")
@@ -1143,10 +1141,10 @@ Allow inline execution of specific babel modes.
     (split-window-right 40)
     (other-window 1)
     (mu4e)
-    (mu4e~headers-jump-to-maildir "INBOX")
+    (mu4e~headers-jump-to-maildir "/familie-uhlich/inbox")
     (other-window 1)
     (mu4e-dashboard)
     )
 
-(add-hook 'window-setup-hook 'start-all-eyebrowse-workspaces)
+(add-hook 'window-setup-hook 'my-initial-window-setup)
 #+end_src
