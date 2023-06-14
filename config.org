@@ -28,11 +28,9 @@ Assure org-protocol module being active! Attention - this assumes you are runnin
 #+begin_src emacs-lisp
 (server-start)
 (defadvice raise-frame (after make-it-work (&optional frame) activate)
-  "Work around some bug? in raise-frame/Emacs/GTK/Metacity/something.
-     Katsumi Yamaoka posted this in
-     http://article.gmane.org/gmane.emacs.devel:39702"
+  "Replaced wmctrl with gnome extension for Ubuntu wayland"
      (call-process
-     "wmctrl" nil nil nil "-a" "Emacs"))
+     "busctl" nil nil nil "--user" "call" "org.gnome.Shell" "/de/lucaswerkmeister/ActivateWindowByTitle" "de.lucaswerkmeister.ActivateWindowByTitle" "activateBySubstring" "s" "Emacs"))
 (add-hook 'server-switch-hook 'raise-frame)
 #+end_src
 ** Add short cut for fullscreen toggle 
@@ -213,13 +211,16 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
             (define-key eyebrowse-mode-map (kbd "<f6>") 'eyebrowse-switch-to-window-config-7))
   )
  #+end_src
-** Line numbers in code buffers
-   #+begin_src emacs-lisp
-(add-hook 'prog-mode-hook 'linum-mode)
-   #+end_src
 ** quelpa for git fetch packagings
 #+begin_src emacs-lisp
 (require 'quelpa)
+#+end_src
+** svg
+#+begin_src emacs-lisp
+(use-package svg-tag-mode)
+(setq svg-tag-tags
+      '(("\\(:\[[a-zA-Z]+\]:\\)" . ((lambda (tag)
+                               (svg-tag-make tag :beg 2 :end -2))))))
 #+end_src
 * Misc packages
 ** docker
@@ -572,6 +573,7 @@ This is adding some discipline. Keep your commit messages short.
 (use-package org
   :bind (("C-c M" . 'org-agenda-view))
   :config
+  (setq org-plantuml-jar-path (expand-file-name "~/opensource/plantuml/plantuml.jar"))
   ;; Activate Org-babel languages.
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -580,6 +582,7 @@ This is adding some discipline. Keep your commit messages short.
      (shell . t)
      (C . t)
      (lisp . t)
+     (plantuml . t)
      (latex . t)))
   (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
   (setq org-babel-python-command "python3")
@@ -740,10 +743,8 @@ With org reveal you can add an easy way to create reveal presentations directly 
   :init
   (setq org-reveal-root "/home/chuhlich/opensource/reveal.js"))
 
-(global-set-key (kbd "C-c a") '(lambda (&optional arg) (interactive "P")(org-agenda arg "t")))
 (global-set-key (kbd "C-c O") '(lambda (&optional arg) (interactive "P")(org-agenda arg "z")))
 (global-set-key (kbd "C-c s") '(lambda (&optional arg) (interactive "P")(org-switchb)))
-(global-set-key (kbd "C-c c") '(lambda (&optional arg) (interactive "P")(org-capture)))
  #+end_src
 
 ** Experimental custom agenda view
@@ -856,6 +857,26 @@ Setting entry-empty-p function to nil will avoid ignoring empty bodied drill ite
 ;  :config
 ;  (defun org-drill-entry-empty-p () nil))
    #+end_src
+
+** org-ai
+#+begin_src emacs-lisp
+(use-package org-ai
+  :ensure t
+  :commands (org-ai-mode
+             org-ai-global-mode)
+  :init
+  (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
+  (org-ai-global-mode) ; installs global keybindings on C-c M-a
+  :config
+  (setq org-ai-default-chat-model "gpt-3.5-turbo") ; if you are on the gpt-4 beta:
+  (org-ai-install-yasnippets)) ; if you are using yasnippet and want `ai` snippets
+#+end_src
+
+** ox-report
+#+begin_src emacs-lisp
+(use-package ox-report)
+#+end_src
+
 * ibuffer
 Enter a buffer overview by pressing =C-x C-b=.
 More info:
