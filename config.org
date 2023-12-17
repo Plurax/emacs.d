@@ -8,21 +8,34 @@
 * Visual stuff and global settings
 ** General
    #+begin_src emacs-lisp
+(use-package pass)
+(use-package request);toggl needs this
+;; supress welcome screen
+(setq inhibit-startup-message t)
+;; Bind other-window to more accessible keys
+(defun prev-window ()
+  (interactive)
+  (other-window -1))
+(global-set-key (kbd "C-'") 'other-window)
+(global-set-key (kbd "C-;") 'prev-window)
+
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024)) ;; 1mb
+
 (use-package general)
 ; Keep temp and lock files out of my way...
 (setq backup-directory-alist
       `((".*" . ,temporary-file-directory)))
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
-
 ;; load own listp sources from sync folder
-(add-to-list 'load-path "~/SynologyDrive/Drive/emacsconfig")
+(add-to-list 'load-path "~/SynologyDrive/Drive/emacsconfig") ;
 
       #+end_src
 ** Emacs server
 This will start the emacs server to provide interaction with org-protocol
 Create a global shortcut of your choice and call /usr/bin/emacsclient org-protocol://capture?template=t
-This will act like calling C-c within Emacs, but bringing Emacs to scope and youre
+This will act like calling C-c within Emacs, but bringing Emacs to scope and you are
 able to add your todo instantly from any other application...
 Assure org-protocol module being active! Attention - this assumes you are running only one Emacs window(!)
 #+begin_src emacs-lisp
@@ -39,11 +52,11 @@ I need this when switching between docked and stand alone mode.
 (global-set-key (kbd "M-<f11>") 'toggle-frame-fullscreen)
 (global-set-key (kbd "C-c t") 'treemacs)
 #+end_src
-** Comment and uncomment
-   #+begin_src emacs-lisp
-(global-set-key (kbd "C-c C-c") 'comment-or-uncomment-region)
-   #+end_src
-   
+** Switch window
+#+begin_src emacs-lisp
+(global-set-key (kbd "C-'") 'other-window)
+(global-set-key (kbd "C-;") 'prev-window)
+#+end_src
 ** comint and Shell modifications
 Changed a default colour to "dodger blue" to make ls colours easier to see.
 #+begin_src emacs-lisp
@@ -85,7 +98,7 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 #+end_src
 ** TAB settings
 #+begin_src emacs-lisp
-;; set tabs to indent as white spaces and set default tab width to 4 white spaces
+;; set tabs to indent as white spaces and set default tab width to 2 white spaces
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 2)
 ;(setq-default indent-line-function 'insert-tab)
@@ -102,10 +115,26 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 (set-scroll-bar-mode nil)
 #+end_src
 ** Themes and icons
-*** doom-themes
   #+begin_src emacs-lisp
+(use-package all-the-icons)
+(use-package nerd-icons)
+#+end_src
+
+Call all-the-icons-install-fonts if icons are not shown correctly in modeline.
+#+begin_src emacs-lisp
+; this is a workaround since latest doom-modeline with nerd fonts has a performance issue in this setup
+(add-to-list 'load-path "~/opensource/doom-modeline-3.4.0")
+(load "doom-modeline")
+(add-hook 'after-init-hook 'doom-modeline-mode)
+
+;(use-package doom-modeline
+;  :ensure t
+;  :hook (after-init . doom-modeline-mode))
+;  :config
+;  (display-battery-mode 1))
+
 (use-package doom-themes
-  :after doom-mode-line
+  :after doom-modeline
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
@@ -130,7 +159,6 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   "Disable theme before loading new one."
   (mapc #'disable-theme custom-enabled-themes))
 
-
 (defun cu/next-theme (theme)
   (interactive)
   (progn
@@ -142,16 +170,6 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   (interactive)
   (cond ((eq *cu-current-theme* *cu-theme-dark*) (cu/next-theme *cu-theme-light*))
         ((eq *cu-current-theme* *cu-theme-light*) (cu/next-theme *cu-theme-dark*))))
-
-  #+end_src
-*** doom-modeline
-  #+begin_src emacs-lisp
-(use-package doom-modeline
-  :ensure t
-  :hook (after-init . doom-modeline-mode)
-  :config
-  (display-battery-mode 1))
-
 
   #+end_src
 ** treemacs
@@ -211,10 +229,6 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
             (define-key eyebrowse-mode-map (kbd "<f6>") 'eyebrowse-switch-to-window-config-7))
   )
  #+end_src
-** quelpa for git fetch packagings
-#+begin_src emacs-lisp
-(require 'quelpa)
-#+end_src
 ** svg
 #+begin_src emacs-lisp
 (use-package svg-tag-mode)
@@ -230,7 +244,9 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   :bind ("C-c d" . docker))
  #+end_src
 ** google-translate
- #+begin_src emacs-lisp
+Translate word at point or complete region directly via google translate API call.
+
+#+begin_src emacs-lisp
 ; this is a dependency of translate - if not there google-translate will cause a load error
 (use-package popup)
 
@@ -265,17 +281,6 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
  #+begin_src emacs-lisp
 (use-package json-mode)
  #+end_src
-** typescript-mode
- #+begin_src emacs-lisp
-(use-package typescript-mode
-  :mode "\\.ts\\'"
-  :hook (typescript-mode . lsp-deferred)
-  :config (setq typescript-indent-level 2))
- #+end_src
-** flymake-json
- #+begin_src emacs-lisp
-(use-package flymake-json)
- #+end_src
 ** kill-ring-search
  #+begin_src emacs-lisp
 (use-package kill-ring-search)
@@ -289,146 +294,190 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 (use-package ovpn-mode)
    #+end_src
 * Major modes and programming setups
-** go-mode
- #+begin_src emacs-lisp
-(use-package go-projectile)
-
-
-(defun lsp-go-install-save-hooks ()
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
-(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
-
-;; Start LSP Mode and YASnippet mode
-(add-hook 'go-mode-hook #'lsp-deferred)
-(add-hook 'go-mode-hook #'yas-minor-mode)
- #+end_src
-** tide
- #+begin_src emacs-lisp
-(use-package tide
-  :after (company flycheck)
-  :config
-  (define-key tide-mode-map (kbd "s-b") 'tide-jump-to-definition)
-  (define-key tide-mode-map (kbd "s-[") 'tide-jump-back))
-
- #+end_src
-** web mode
+** lsp mode
 #+begin_src emacs-lisp
-  (use-package web-mode
-    :mode
-    ("\\.html?$". web-mode)
-    ("\\.css$". web-mode)
-    ("\\.tsx$". web-mode)
-    ("\\.jsx\\'" . web-mode)
-    :config
-    (when (fboundp 'lsp-typescript-javascript-tsx-jsx-activate-p)
-      (fmakunbound 'lsp-typescript-javascript-tsx-jsx-activate-p))
-  
-    (defun lsp-typescript-javascript-tsx-jsx-activate-p (filename &optional _)
-      "Check if the javascript-typescript language server should be enabled based on FILENAME."
-      (or (string-match-p (rx (one-or-more anything) "." (or "ts" "js") (opt "x") string-end) filename)
-          (and (derived-mode-p 'js-mode 'js2-mode 'typescript-mode 'web-mode)
-               (not (derived-mode-p 'json-mode))))))
-#+end_src
-** vue
-   #+begin_src emacs-lisp
-(use-package vue-mode
-  :mode "\\.vue\\'"
-  :config
-  (add-hook 'vue-mode-hook #'lsp)
-  (add-hook 'vue-html-mode-hook #'lsp))
-
-(use-package vue-html-mode)
-   #+end_src
-** rsjx mode
- #+begin_src emacs-lisp
-(use-package rjsx-mode
-  :mode ("\\.jsx?$" . rjsx-mode)
-  :hook (rjsx-mode . tide-setup)
-  :config (setq js-indent-level 2
-                js2-strict-missing-semi-warning nil))
- #+end_src
-** js2 mode
- #+begin_src emacs-lisp
-(use-package js2-mode :ensure t)
- #+end_src
-
-* lsp
-** lsp-mode
- #+begin_src emacs-lisp
-(setq exec-path (append exec-path '("~/.nvm/versions/node/v12.16.0/bin")))
-
 (setq lsp-prefer-flymake nil)
 
 (use-package lsp-mode
-  :init (setq lsp-keymap-prefix "C-c l")
+  :ensure t
+  :init
+  (setq lsp-keymap-prefix "C-c l")
+  :hook ((c-mode          . lsp-deferred)
+         (c++-mode        . lsp-deferred)
+         (html-mode       . lsp-deferred)
+         (sh-mode         . lsp-deferred)
+         (web-mode . lsp-deferred)
+         (lsp-mode        . lsp-enable-which-key-integration))
   :commands (lsp lsp-deferred)
-  :ensure t
-  :config
-  (lsp-enable-which-key-integration t)
-  (add-to-list 'lsp-language-id-configuration '(rjsx-mode . "javascript"))
-  (add-hook 'js2-mode-hook 'lsp)
-  (add-hook 'php-mode 'lsp)
-  (add-hook 'css-mode 'lsp)
-  (add-hook 'go-mode-hook 'lsp-deferred)
-  (add-hook 'c-mode-hook 'lsp)
-  (add-hook 'c++-mode-hook 'lsp)
-  (add-hook 'web-mode 'lsp)
-  (add-hook 'vue 'lsp))
+  :custom
+  (lsp-idle-delay 0.6)
+  (lsp-use-plist t))
 
-(setq lsp-language-id-configuration '((java-mode . "java")
-(python-mode . "python")
-(gfm-view-mode . "markdown")
-(css-mode . "css")
-(xml-mode . "xml")
-(c-mode . "c")
-(c++-mode . "cpp")
-(web-mode . "html")
-(web-mode . "vue[html]")
-(html-mode . "html")
-(sgml-mode . "html")
-(mhtml-mode . "html")
-(go-mode . "go")
-(json-mode . "json")
-(js2-mode . "javascript")
-(typescript-mode . "typescript")
-))
-
- #+end_src
-** lsp-ui
- #+begin_src emacs-lisp
 (use-package lsp-ui
-  :ensure t
-)
+  :commands lsp-ui-mode
+  :custom
+  (lsp-ui-peek-always-show t)
+  (lsp-ui-sideline-show-hover t))
 
-(setq lsp-ui-doc-enable t
-      lsp-ui-peek-enable t
-      lsp-ui-sideline-enable t
-      lsp-ui-imenu-enable t
-      lsp-ui-flycheck-enable t)
+(use-package lsp-ivy
+  :defer t
+  :after lsp
+  :commands lsp-ivy-workspace-symbol)
 
- #+end_src
-** lsp-treemacs
+(use-package exec-path-from-shell
+  :defer t
+  :init (exec-path-from-shell-initialize))
+#+end_src
+** Tailwind lsp
+#+begin_src emacs-lisp
+(use-package lsp-tailwindcss
+  :init
+  (setq lsp-tailwindcss-add-on-mode t))
+#+end_src
+** web mode
+#+begin_src emacs-lisp
+(use-package web-mode
+  :defer t
+  :hook html-mode
+  :hook (web-mode . prettier-js-mode)
+  :hook (web-mode . lsp-deferred)
+  :mode (("\\.phtml\\'"      . web-mode)
+         ("\\.tpl\\.php\\'"  . web-mode)
+         ("\\.twig\\'"       . web-mode)
+         ("\\.xml\\'"        . web-mode)
+         ("\\.html\\'"       . web-mode)
+         ("\\.htm\\'"        . web-mode)
+         ("\\.[gj]sp\\'"     . web-mode)
+         ("\\.as[cp]x?\\'"   . web-mode)
+         ("\\.eex\\'"        . web-mode)
+         ("\\.erb\\'"        . web-mode)
+         ("\\.mustache\\'"   . web-mode)
+         ("\\.handlebars\\'" . web-mode)
+         ("\\.hbs\\'"        . web-mode)
+         ("\\.eco\\'"        . web-mode)
+         ("\\.ejs\\'"        . web-mode)
+         ("\\.svelte\\'"     . web-mode)
+         ("\\.ctp\\'"        . web-mode)
+         ("\\.djhtml\\'"     . web-mode)
+         ("\\.vue\\'"        . web-mode))
+  :config
+  (setq web-mode-markup-indent-offset 2
+         web-mode-code-indent-offset   2
+         web-mode-css-indent-offset    2
+         web-mode-style-padding        0
+         web-mode-script-padding       0))
+
+(add-to-list 'auto-mode-alist '("\\.vue\\'" . web-mode))
+
+(use-package company-web
+  :defer t
+  :after (emmet-mode web-mode))
+
+(use-package css-mode
+  :defer t
+  :hook (css-mode . smartparens-mode)
+  :hook (css-mode . lsp-deferred)
+  :hook (scss-mode . prettier-js-mode)
+  :init
+  (put 'css-indent-offset 'safe-local-variable #'integerp))
+
+(use-package scss-mode
+  :hook (scss-mode . smartparens-mode)
+  :hook (scss-mode . lsp-deferred)
+  :hook (scss-mode . prettier-js-mode)
+  :defer t
+  :mode "\\.scss\\'")
+
+(use-package counsel-css
+  :defer t)
+
+(use-package less-css-mode
+  :defer t
+  :mode "\\.less\\'"
+  :hook (less-css-mode . smartparens-mode)
+  :hook (less-css-mode . lsp-deferred)
+  :hook (less-css-mode . prettier-js-mode))
+
+(use-package rainbow-delimiters)
+
+#+end_src
+
+** rsjx mode
  #+begin_src emacs-lisp
-(use-package lsp-treemacs)
+(use-package rjsx-mode
+  :defer t
+  :after compile
+  :mode "\\.[mc]?jsx?\\'"
+  :mode "\\.es6\\'"
+  :mode "\\.pac\\'"
+  :interpreter "node"
+  :hook (rjsx-mode . rainbow-delimiters-mode)
+  :hook (rjsx-mode . lsp-deferred)
+  :init
+  (add-to-list 'compilation-error-regexp-alist 'node)
+  (add-to-list 'compilation-error-regexp-alist-alist
+               '(node "^[[:blank:]]*at \\(.*(\\|\\)\\(.+?\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)"
+                      2 3 4))
+  :config
+  (setq js-chain-indent                  t
+        js2-basic-offset                 2
+        ;; ignore shebangs
+        js2-skip-preprocessor-directives t
+        ;; Flycheck handles this already
+        js2-mode-show-parse-errors       nil
+        js2-mode-show-strict-warnings    nil
+        ;; conflicting with eslint, Flycheck already handles this
+        js2-strict-missing-semi-warning  nil
+        js2-highlight-level              3
+        js2-idle-timer-delay             0.15))
 
-;; supress welcome screen
-(setq inhibit-startup-message t)
+(use-package prettier-js
+  :defer t
+  :after (rjsx-mode web-mode typescript-mode)
+  :hook ((rjsx-mode typescript-mode) . prettier-js-mode)
+  :config
+  (setq prettier-js-args '("--single-quote" "--jsx-single-quote")))
 
-;; Bind other-window (and custom prev-window) to more accessible keys.
-(defun prev-window ()
-  (interactive)
-  (other-window -1))
-(global-set-key (kbd "C-'") 'other-window)
-(global-set-key (kbd "C-;") 'prev-window)
+#+end_src
+
+** Type script
+#+begin_src emacs-lisp
+(use-package typescript-mode
+  :defer t
+  :hook (typescript-mode     . rainbow-delimiters-mode)
+  :hook (typescript-tsx-mode . rainbow-delimiters-mode)
+  :hook (typescript-mode     . lsp-deferred)
+  :hook (typescript-tsx-mode . lsp-deferred)
+  :hook (typescript-mode     . prettier-js-mode)
+  :hook (typescript-tsx-mode . prettier-js-mode)
+  :commands typescript-tsx-mode
+  :after flycheck
+  :init
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . typescript-tsx-mode))
+  :config
+  (with-eval-after-load 'flycheck
+    (flycheck-add-mode 'javascript-eslint 'web-mode)
+    (flycheck-add-mode 'javascript-eslint 'typescript-mode)
+    (flycheck-add-mode 'javascript-eslint 'typescript-tsx-mode)
+    (flycheck-add-mode 'typescript-tslint 'typescript-tsx-mode))
+  (when (fboundp 'web-mode)
+    (define-derived-mode typescript-tsx-mode web-mode "TypeScript-TSX"))
+  (autoload 'js2-line-break "js2-mode" nil t))
+
+(use-package tide
+  :defer t
+  :hook (tide-mode . tide-hl-identifier-mode)
+  :config
+  (setq tide-completion-detailed              t
+        tide-always-show-documentation        t
+        tide-server-may-response-length       524288
+        tide-completion-setup-company-backend nil)
+
+  (advice-add #'tide-setup :after #'eldoc-mode))
+
+#+end_src
 
 
- #+end_src
-* Embedded / Arduino etc.
-** platformio-mode
- #+begin_src emacs-lisp
-(use-package platformio-mode)
- #+end_src
 * dockerfile-mode
 #+begin_src emacs-lisp
 (use-package dockerfile-mode
@@ -456,67 +505,43 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
   :config (flycheck-pos-tip-mode)
   )
  #+end_src
-* company
+* Code completion with company
 #+begin_src emacs-lisp
 (use-package company
+  :defer t
+  :init (global-company-mode)
   :config
-  (setq lsp-completion-provider :capf))
+  (setq lsp-completion-provider :capf
+        company-minimum-prefix-length     2
+        company-toolsip-limit             14
+        company-tooltip-align-annotations t
+        company-require-match             'never
+        company-global-modes              '(not erc-mode message-mode help-mode gud-mode)
+        company-frontends
+        '(company-pseudo-tooltip-frontend ; always show candidates in overlay tooltip
+          company-echo-metadata-frontend) ; show selected candidate docs in echo area
+        company-backends '(company-capf)
+        company-auto-commit         nil
+        company-auto-complete-chars nil
+        company-dabbrev-other-buffers nil
+        company-dabbrev-ignore-case nil
+        company-dabbrev-downcase    nil))
+
+(use-package company-dict
+  :after company
+  :config
+  (setq company-dict-dir (expand-file-name "dicts" user-emacs-directory)))
 
 #+end_src
-* yasnippet
-#+begin_src emacs-lisp
-(use-package yasnippet :ensure t)
-#+end_src
-* markdown-mode
-#+begin_src emacs-lisp
-(use-package markdown-mode
-  :ensure t
-  :commands (markdown-mode gfm-mode)
-  :mode (("README\\.md\\'" . gfm-mode)
-         ("\\.md\\'" . markdown-mode)
-         ("\\.markdown\\'" . markdown-mode))
-  :init (setq markdown-command "pandoc"))
-
-(use-package markdown-toc)
-#+end_src
-* ivy
+* Menu package ivy
 #+begin_src emacs-lisp
 (use-package ivy
   :config
   (ivy-mode)
-  (setq ivy-use-virtual-buffers t)
-  (setq enable-recursive-minibuffers t)
-  )
+  (setq ivy-use-virtual-buffers t
+        enable-recursive-minibuffers t))
 #+end_src
-* ag
-#+begin_src emacs-lisp
-(use-package ag)
-#+end_src
-* magit and forge
-Magit is the incredible git client within emacs!
-Whenever in a repo - press =C-x g= to get a separate status buffer.
-#+begin_src emacs-lisp
-(use-package magit)
-
-(use-package forge
-  :after magit)
-#+end_src
-* git-commit
-This is adding some discipline. Keep your commit messages short.
-#+begin_src emacs-lisp
-(use-package git-commit
-  ;; Limit commit message summary to 50 columns, and wrap content after 72 columns.
-  :init (add-hook 'git-commit-mode-hook
-                  '(lambda ()
-                     (setq-local git-commit-summary-max-length 50)
-                     (setq-local fill-column 72)))
-  )
-#+end_src
-* npm mode
-  #+begin_src emacs-lisp
-(use-package npm-mode)
-  #+end_src
-* counsel
+* Completion frontend counsel
 #+begin_src emacs-lisp
 (use-package counsel
   :after ag ivy magit
@@ -538,18 +563,50 @@ This is adding some discipline. Keep your commit messages short.
   :init (setq counsel-git-grep-skip-counting-lines t)
   )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; drag stuff
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #+end_src
-* drag-stuff
+
+* yasnippet
 #+begin_src emacs-lisp
-(use-package drag-stuff
-  :config
-  (drag-stuff-global-mode 1)
-  (drag-stuff-define-keys)
+(use-package yasnippet :ensure t)
+#+end_src
+* markdown-mode
+#+begin_src emacs-lisp
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "pandoc"))
+
+(use-package markdown-toc)
+#+end_src
+* ag
+#+begin_src emacs-lisp
+(use-package ag)
+#+end_src
+* Git handling
+Magit is the incredible git client within emacs!
+Whenever in a repo - press =C-x g= to get a separate status buffer.
+#+begin_src emacs-lisp
+(use-package magit)
+
+#+end_src
+
+This is adding some discipline. Keep your commit messages short.
+#+begin_src emacs-lisp
+(use-package git-commit
+  ;; Limit commit message summary to 50 columns, and wrap content after 72 columns.
+  :init (add-hook 'git-commit-mode-hook
+                  '(lambda ()
+                     (setq-local git-commit-summary-max-length 50)
+                     (setq-local fill-column 72)))
   )
 #+end_src
+* npm mode
+  #+begin_src emacs-lisp
+(use-package npm-mode)
+  #+end_src
 * expand-region
 #+begin_src emacs-lisp
 (use-package expand-region)
@@ -573,7 +630,6 @@ This is adding some discipline. Keep your commit messages short.
 (use-package org
   :bind (("C-c M" . 'org-agenda-view))
   :config
-  (setq org-plantuml-jar-path (expand-file-name "~/opensource/plantuml/plantuml.jar"))
   ;; Activate Org-babel languages.
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -582,7 +638,6 @@ This is adding some discipline. Keep your commit messages short.
      (shell . t)
      (C . t)
      (lisp . t)
-     (plantuml . t)
      (latex . t)))
   (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
   (setq org-babel-python-command "python3")
@@ -614,7 +669,7 @@ This is adding some discipline. Keep your commit messages short.
   (defun org-current-is-todo ()
     (string= "TODO" (org-get-todo-state)))
   (defun my-org-timer-done ()
-    (shell-command "canberra-gtk-play --file=/usr/share/sounds/gnome/default/alerts/glass.ogg"))
+    (shell-command "canberra-gtk-play --file=/usr/share/sounds/gnome/default/alerts/string.ogg"))
   )
 
 ;; toggl
@@ -642,12 +697,8 @@ This is adding some discipline. Keep your commit messages short.
   ("C-c n j" . org-journal-new-entry))
 (setq org-journal-agenda-integration t)
  #+end_src
-** TODO org-vcard
- #+begin_src emacs-lisp
-(use-package org-vcard)
- #+end_src
 ** org-gcal
-I am using gmail for work. But I currently ony use synching downwards.
+I am using gmail for work. But I currently only use synching downwards.
 Syncing into gmail was not yet in my scope.
 *** TODO I m looking for a nice way to integrate calendar items directly by using mu4e (reading the ical file attachment).
    #+begin_src emacs-lisp
@@ -987,9 +1038,6 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
        'auctex-evince-inverse-sync)))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(projectile-mode +1)
-(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
-
 #+end_src
 * Mail
 #+begin_src emacs-lisp
@@ -1017,6 +1065,7 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
         mu4e-headers-unread-mark '("u" . "❗")
         mu4e-view-show-addresses 't)
 
+(define-key mu4e-headers-mode-map (kbd "C-d") 'mu4e-dashboard)
 (define-key mu4e-headers-mode-map (kbd "C-c c") 'org-mu4e-store-and-capture)
 (define-key mu4e-view-mode-map    (kbd "C-c c") 'org-mu4e-store-and-capture)
 (setq org-mu4e-link-query-in-headers-mode nil
@@ -1053,21 +1102,6 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 (load-library "mu4e-contexts.el")
 (add-to-list 'load-path "~/opensource/mu4e-dashboard")
 (require 'mu4e-dashboard)
-#+end_src
-* AWS
-#+begin_src emacs-lisp
-;; (use-package aws-mode
-;;   :bind ;; some functions which make sense to bind to something
-;;   ("C-c a a" . aws)
-;;   ("C-c a l" . aws-login)
-;;   ("C-c a n" . aws-organizations-get-account-name)
-;;   ("C-c a i" . aws-organizations-get-account-id)
-;;   :load-path "~/opensource/aws.el"
-;;   :custom
-;;   (aws-vault t) ;; when t use aws-vault cmd to get into aws session
-;;   (aws-output "json") ;; optional: yaml, json, text (default: yaml)
-;;   (aws-organizations-account "root")) ;; profile of organizations account. organizations commands are automatically executed against this account, when specified
-
 #+end_src
 * Helper functions
 This can be used with REST Client mode for retrieving user/pass to avoid pasting
@@ -1159,11 +1193,7 @@ Allow inline execution of specific babel modes.
 
     (eyebrowse-switch-to-window-config-1)
     (delete-other-windows)
-    (split-window-right 40)
-    (other-window 1)
     (mu4e)
-    (mu4e~headers-jump-to-maildir "/familie-uhlich/inbox")
-    (other-window 1)
     (mu4e-dashboard)
     )
 
