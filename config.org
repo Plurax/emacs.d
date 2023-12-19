@@ -9,6 +9,8 @@
 ** General
    #+begin_src emacs-lisp
 (use-package pass)
+(auth-source-pass-enable)
+
 (use-package request);toggl needs this
 ;; supress welcome screen
 (setq inhibit-startup-message t)
@@ -19,7 +21,7 @@
 (global-set-key (kbd "C-'") 'other-window)
 (global-set-key (kbd "C-;") 'prev-window)
 
-(setq gc-cons-threshold 100000000)
+(setq gc-cons-threshold 1000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
 
 (use-package general)
@@ -122,16 +124,13 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 
 Call all-the-icons-install-fonts if icons are not shown correctly in modeline.
 #+begin_src emacs-lisp
-; this is a workaround since latest doom-modeline with nerd fonts has a performance issue in this setup
-(add-to-list 'load-path "~/opensource/doom-modeline-3.4.0")
-(load "doom-modeline")
-(add-hook 'after-init-hook 'doom-modeline-mode)
-
-;(use-package doom-modeline
-;  :ensure t
-;  :hook (after-init . doom-modeline-mode))
-;  :config
-;  (display-battery-mode 1))
+(use-package doom-modeline
+  :ensure t
+  :hook (after-init . doom-modeline-mode)
+  :config
+; Don’t compact font caches during GC.
+  (setq inhibit-compacting-font-caches t)
+  (display-battery-mode 1))
 
 (use-package doom-themes
   :after doom-modeline
@@ -197,13 +196,6 @@ Call all-the-icons-install-fonts if icons are not shown correctly in modeline.
 ;; don't use global line highlight mode
 (global-hl-line-mode 0)
 
-  #+end_src
-*** unicode fonts
-  #+begin_src emacs-lisp
-(use-package unicode-fonts
-:config
-(unicode-fonts-setup)
-)
   #+end_src
 ** default-text-scale
  #+begin_src emacs-lisp
