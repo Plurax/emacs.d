@@ -228,6 +228,23 @@ Call all-the-icons-install-fonts if icons are not shown correctly in modeline.
       '(("\\(:\[[a-zA-Z]+\]:\\)" . ((lambda (tag)
                                (svg-tag-make tag :beg 2 :end -2))))))
 #+end_src
+** company emojify
+#+begin_src emacs-lisp
+(use-package company-emojify
+  :config
+  (add-to-list 'company-backends 'company-emojify)
+  (setq company-emojify-annotation "unicode"));use the unicode glyphs to show emojis in auto complete popup
+
+#+end_src
+** Projectile
+#+begin_src emacs-lisp
+(use-package projectile
+  :ensure t
+  :init
+  (projectile-mode +1)
+  :bind (:map projectile-mode-map
+              ("C-c p" . projectile-command-map)))
+#+end_src
 * Misc packages
 ** docker
  #+begin_src emacs-lisp
