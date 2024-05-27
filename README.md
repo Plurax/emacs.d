@@ -1,12 +1,10 @@
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 
-- [Table of Contents](#table-of-contents)
 - [What](#what)
 - [Installing pre-requisites](#installing-pre-requisites)
     - [CMake](#cmake)
     - [Clang/LLVM](#clangllvm)
-    - [ccls](#ccls)
     - [Ivy (Copied from dfrib)](#ivy-copied-from-dfrib)
     - [Installing pre-requisites for the convenience packages](#installing-pre-requisites-for-the-convenience-packages)
 - [Using this repo for applying the settings](#using-this-repo-for-applying-the-settings)
@@ -16,18 +14,14 @@
 - [Acknowledgements](#acknowledgements)
 
 <!-- markdown-toc end -->
-# New
-
-Did a major change - I removed cask completely and now only rely on package.el which is built in. I did not make it to get lsp working in all places I would like to, but currently I dont code that often... If I need to include packages not in (m)elpa, I clone them to ~/opensource/ and call a load-library...
-
 # What
 
-This setup is derived from dfribs setup. https://github.com/dfrib/emacs_setup
+This setup is derived from dfribs setup. https://github.com/dfrib/emacs_setup - but later I switched to use package.el only and skipped usage of cask.
 
 I startet with org-mode around Jan 2019 so this might be a floating setup.
 For my small projects its nevertheless working...
 
-This is currently running on Ubuntu with emacs 27.1
+This is currently running on Ubuntu with emacs 30.0.x (snapshot build from source)
 
 The core packages of my setup are:
 
@@ -43,17 +37,26 @@ Some other convenience packages worth mentioning (as they require Emacs-external
 
 # Installing pre-requisites
 
-Before we start, resync the package index files for APT:
+Before we start, activate source repositories and resync the package index files for APT:
+
+To activate source repositories, you can select "Source code"  list entry within the software sources list tool.
 
 ```bash
-$ sudo apt-get update
-$ sudo apt-get install libgmime-3.0-dev libxapian-dev isync guile-2.0-dev html2text xdg-utils mu4e emacs27
+sudo apt-get update
+```
+
+## Mail tooling
+
+We will build the mu indexer manually but need some dependencies.
+
+```bash
+sudo apt-get install libgmime-3.0-dev libxapian-dev isync html2text xdg-util
 ```
 
 ## CMake
 
 ```bash
-$ sudo apt-get install cmake
+sudo apt-get install cmake
 ```
 
 ## Clang/LLVM
@@ -61,7 +64,7 @@ $ sudo apt-get install cmake
 Next up, we install clang and llvm.
 
 ```bash
-$ sudo apt-get install clang-7.0 llvm-7.0 libclang-7.0-dev clang-format-7.0
+sudo apt-get install clang llvm libclang-dev clang-format
 ```
 
 ## Ivy (Copied from dfrib)
@@ -71,12 +74,21 @@ $ sudo apt-get install clang-7.0 llvm-7.0 libclang-7.0-dev clang-format-7.0
 To allow using `counsel-ag`, install `ag`:
 
 ```bash
-$ sudo apt-get install silversearcher-ag
+sudo apt-get install silversearcher-ag
+```
+
+## mu
+
+For usage of mu4e we use the github repo and build it manually:
+
+```bash
+
 ```
 
 ## Installing pre-requisites for the convenience packages
 
 I use the doom theme and the corresponding smart mode line. This is installed by package, but you propably need to install fonts via calling all-the-icons-install-fonts from withing emacs.
+Since doom-modeline switched to nerd-icons you need also to call nerd-icons-install-fonts for those.
 
 # Using this repo for applying the settings
 
@@ -99,7 +111,7 @@ You can use the customize-variable command of emacs for this. You can change the
 This command should start emacs with doom theme and modeline. Allowing you to start entering emacs world... (The & avoids the shell being blocked by the emacs process)
 
 ```bash
-$ emacs &
+emacs &
 ```
 
 # Contributing
