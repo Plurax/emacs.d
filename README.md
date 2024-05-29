@@ -16,16 +16,18 @@
 <!-- markdown-toc end -->
 # What
 
-This setup is derived from dfribs setup. https://github.com/dfrib/emacs_setup - but later I switched to use package.el only and skipped usage of cask.
+This setup was derived from dfribs setup. https://github.com/dfrib/emacs_setup - but later I switched to use package.el only and skipped usage of cask.
 
-I startet with org-mode around Jan 2019 so this might be a floating setup.
+My personal reason for using emacs was my experience with micro controller programming around 2008.
+I rediscovered Emacs with the use of org-mode around Jan 2019, doing less programming.
+
 For my small projects its nevertheless working...
 
 This is currently running on Ubuntu with emacs 30.0.x (snapshot build from source)
 
 The core packages of my setup are:
 
-- [`magit`](https://magit.vc/) for any kind of Git interaction. `magit` is such an awesome Git client that I even sincerely recommend my non-Emacs-colleagues to turn to Emacs/`magit` _solely_ for using Git (naturally sneakily allowing to possibly tempt them to get into all other, never-ending additional upsides of using Emacs).
+- [`magit`](https://magit.vc/) for any kind of Git interaction. `magit` is such an awesome Git client
 - [`ivy`](https://github.com/abo-abo/swiper) for minibuffer code completion.
 
 Some other convenience packages worth mentioning (as they require Emacs-external dependencies) are:
@@ -38,32 +40,32 @@ Some other convenience packages worth mentioning (as they require Emacs-external
 # Installing pre-requisites
 
 Before we start, activate source repositories and resync the package index files for APT:
-
 To activate source repositories, you can select "Source code"  list entry within the software sources list tool.
 
 ```bash
 sudo apt-get update
+sudo apt build-dep emacs
 ```
 
 ## Mail tooling
 
 We will build the mu indexer manually but need some dependencies.
+isync is used to create a local mail folder which holds all mails. Since this is a copy of your mail boxes you should
+use drive encryption. The build configuration of mu is using meson, which is also installed via apt here.
 
 ```bash
-sudo apt-get install libgmime-3.0-dev libxapian-dev isync html2text xdg-util
+sudo apt-get install libgmime-3.0-dev libxapian-dev isync html2text xdg-util meson guile-3.0 guile-3.0-dev
+cd ~/opensource
+git clone https://github.com/djcb/mu.git
+cd mu
+./autogen.sh
+make 
 ```
 
-## CMake
+## CMake and clang
 
 ```bash
 sudo apt-get install cmake
-```
-
-## Clang/LLVM
-
-Next up, we install clang and llvm.
-
-```bash
 sudo apt-get install clang llvm libclang-dev clang-format
 ```
 
@@ -77,18 +79,18 @@ To allow using `counsel-ag`, install `ag`:
 sudo apt-get install silversearcher-ag
 ```
 
-## mu
-
-For usage of mu4e we use the github repo and build it manually:
+## Clone and build emacs with tree-sitter, native-compilation and native json:
 
 ```bash
-
+cd ~/opensource
+sudo apt-get install libjansson4 libjansson-dev
+git clone https://git.savannah.gnu.org/git/emacs.git
+cd emacs
+./autogen.sh
+./configure --with-native-compilation --with-pgtk --with-imagemagick --with-tree-sitter
+make -j4
+sudo make install
 ```
-
-## Installing pre-requisites for the convenience packages
-
-I use the doom theme and the corresponding smart mode line. This is installed by package, but you propably need to install fonts via calling all-the-icons-install-fonts from withing emacs.
-Since doom-modeline switched to nerd-icons you need also to call nerd-icons-install-fonts for those.
 
 # Using this repo for applying the settings
 
@@ -105,6 +107,17 @@ You can use the customize-variable command of emacs for this. You can change the
 (load custom-file)
 ```
 
+## Ubuntu global todo capturing
+
+For a globale TODO capture workflow to be put in org inbox, set a keyboard shortcut to interact with org-protocol and use a GNOME extension to be able to set Emacs on focus [Activate window by title](https://extensions.gnome.org/extension/5021/activate-window-by-title/). I am using CTRL+SHIFT+ALT+M which will call emacsclient with org-protocol.
+```bash
+emacsclient org-protocol://capture?template=t 
+```
+
+This will set Emacs on focus and open an org todo capture. You can even jump to an org-roam node (e.g. if you have a kind of "index page") with a global shortcut by calling the following snippet (replace the "nodeid" with the node id of the corresponding index org file of your choice.
+```bash
+emacsclient org-protocol://roam-node?node=nodeid
+```
 
 ## Trying it all out
 
@@ -113,6 +126,9 @@ This command should start emacs with doom theme and modeline. Allowing you to st
 ```bash
 emacs &
 ```
+## Installing pre-requisites for the convenience packages
+
+Smart mode line from doom emacs uses nerd-fonts. You propably need to install fonts via calling nerd-icons-install-fonts from within emacs for the icons to work.
 
 # Contributing
 
