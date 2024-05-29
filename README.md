@@ -3,13 +3,15 @@
 
 - [What](#what)
 - [Installing pre-requisites](#installing-pre-requisites)
-    - [CMake](#cmake)
-    - [Clang/LLVM](#clangllvm)
+    - [Mail tooling](#mail-tooling)
+    - [CMake and clang](#cmake-and-clang)
     - [Ivy (Copied from dfrib)](#ivy-copied-from-dfrib)
-    - [Installing pre-requisites for the convenience packages](#installing-pre-requisites-for-the-convenience-packages)
+    - [Clone and build emacs with tree-sitter, native-compilation and native json:](#clone-and-build-emacs-with-tree-sitter-native-compilation-and-native-json)
 - [Using this repo for applying the settings](#using-this-repo-for-applying-the-settings)
 - [Setting up Emacs](#setting-up-emacs)
+    - [Ubuntu global todo capturing](#ubuntu-global-todo-capturing)
     - [Trying it all out](#trying-it-all-out)
+    - [Installing pre-requisites for the convenience packages](#installing-pre-requisites-for-the-convenience-packages)
 - [Contributing](#contributing)
 - [Acknowledgements](#acknowledgements)
 
