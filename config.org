@@ -33,6 +33,10 @@
 ;; load own listp sources from sync folder
 (add-to-list 'load-path "~/SynologyDrive/Drive/emacsconfig") ;
 
+
+(setq warning-minimum-level :error) ; avoid warning buffer to popup automatically
+(add-to-list 'warning-suppress-log-types '(unlock-file))
+(add-to-list 'warning-suppress-types '(unlock-file))
       #+end_src
 ** Emacs server
 This will start the emacs server to provide interaction with org-protocol
@@ -308,10 +312,16 @@ Translate word at point or complete region directly via google translate API cal
 (setq lsp-prefer-flymake nil)
 
 (use-package lsp-mode
+  :diminish "LSP"
   :ensure t
   :init
   (setq lsp-keymap-prefix "C-c l")
-  :hook ((c-mode          . lsp-deferred)
+  :hook ((lsp-mode . lsp-diagnostics-mode)
+         (lsp-mode . lsp-enable-which-key-integration)
+         ((tsx-ts-mode
+           typescript-ts-mode
+           js-ts-mode) . lsp-deferred)
+         (c-mode          . lsp-deferred)
          (c++-mode        . lsp-deferred)
          (html-mode       . lsp-deferred)
          (sh-mode         . lsp-deferred)
@@ -707,6 +717,15 @@ This is adding some discipline. Keep your commit messages short.
   (defun my-org-timer-done ()
     (shell-command "canberra-gtk-play --file=/usr/share/sounds/gnome/default/alerts/string.ogg"))
   )
+
+(use-package org-ai)
+(use-package org-journal)
+(use-package org-msg)
+(use-package org-roam)
+(use-package org-roam-ui)
+(use-package org-superstar)
+(use-package org-super-agenda)
+(use-package org-gcal)
 
  #+end_src
 ** org-toggl
