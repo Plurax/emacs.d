@@ -225,13 +225,6 @@ Call all-the-icons-install-fonts if icons are not shown correctly in modeline.
             (define-key eyebrowse-mode-map (kbd "<f6>") 'eyebrowse-switch-to-window-config-7))
   )
  #+end_src
-** svg
-#+begin_src emacs-lisp
-(use-package svg-tag-mode)
-(setq svg-tag-tags
-      '(("\\(:\[[a-zA-Z]+\]:\\)" . ((lambda (tag)
-                               (svg-tag-make tag :beg 2 :end -2))))))
-#+end_src
 ** company emojify
 #+begin_src emacs-lisp
 (use-package company-emojify
@@ -302,11 +295,33 @@ Translate word at point or complete region directly via google translate API cal
    #+begin_src emacs-lisp
 (use-package which-key)
    #+end_src
-** ovpn management
-   #+begin_src emacs-lisp
-(use-package ovpn-mode)
-   #+end_src
 * Major modes and programming setups
+** vue ts
+#+begin_src emacs-lisp
+(setq treesit-language-source-alist
+ '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+     (cmake "https://github.com/uyha/tree-sitter-cmake")
+     (css "https://github.com/tree-sitter/tree-sitter-css")
+     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+     (go "https://github.com/tree-sitter/tree-sitter-go")
+     (html "https://github.com/tree-sitter/tree-sitter-html")
+     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+     (json "https://github.com/tree-sitter/tree-sitter-json")
+     (make "https://github.com/alemuller/tree-sitter-make")
+     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+     (python "https://github.com/tree-sitter/tree-sitter-python")
+     (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     (vue "https://github.com/ikatyang/tree-sitter-vue.git")
+     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+     (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+
+(add-to-list 'load-path "/home/chuhlich/opensource/vue-ts-mode")
+(require 'vue-ts-mode)
+
+#+end_src
+
+
 ** lsp mode
 #+begin_src emacs-lisp
 (setq lsp-prefer-flymake nil)
@@ -321,11 +336,11 @@ Translate word at point or complete region directly via google translate API cal
          ((tsx-ts-mode
            typescript-ts-mode
            js-ts-mode) . lsp-deferred)
-         (c-mode          . lsp-deferred)
-         (c++-mode        . lsp-deferred)
+         (c-ts-mode          . lsp-deferred)
+         (vue-ts-mode . lsp-deferred)
+         (c++-ts-mode        . lsp-deferred)
          (html-mode       . lsp-deferred)
-         (sh-mode         . lsp-deferred)
-         (web-mode . lsp-deferred)
+         (sh-ts-mode         . lsp-deferred)
          (lsp-mode        . lsp-enable-which-key-integration))
   :commands (lsp lsp-deferred)
   :custom
@@ -353,177 +368,21 @@ Translate word at point or complete region directly via google translate API cal
   :init
   (setq lsp-tailwindcss-add-on-mode t))
 #+end_src
-** web mode
+
+** treesit config
 #+begin_src emacs-lisp
-(use-package web-mode
-  :defer t
-  :hook html-mode
-  :hook (web-mode . prettier-js-mode)
-  :hook (web-mode . lsp-deferred)
-  :mode (("\\.phtml\\'"      . web-mode)
-         ("\\.tpl\\.php\\'"  . web-mode)
-         ("\\.twig\\'"       . web-mode)
-         ("\\.xml\\'"        . web-mode)
-         ("\\.html\\'"       . web-mode)
-         ("\\.htm\\'"        . web-mode)
-         ("\\.[gj]sp\\'"     . web-mode)
-         ("\\.as[cp]x?\\'"   . web-mode)
-         ("\\.eex\\'"        . web-mode)
-         ("\\.erb\\'"        . web-mode)
-         ("\\.mustache\\'"   . web-mode)
-         ("\\.handlebars\\'" . web-mode)
-         ("\\.hbs\\'"        . web-mode)
-         ("\\.eco\\'"        . web-mode)
-         ("\\.ejs\\'"        . web-mode)
-         ("\\.svelte\\'"     . web-mode)
-         ("\\.ctp\\'"        . web-mode)
-         ("\\.djhtml\\'"     . web-mode)
-         ("\\.vue\\'"        . web-mode))
-  :config
-  (setq web-mode-markup-indent-offset 2
-         web-mode-code-indent-offset   2
-         web-mode-css-indent-offset    2
-         web-mode-style-padding        0
-         web-mode-script-padding       0))
+(require 'treesit)
+(treesit-available-p)
 
-(add-to-list 'auto-mode-alist '("\\.vue\\'" . web-mode))
-
-(use-package company-web
-  :defer t
-  :after (emmet-mode web-mode))
-
-(use-package css-mode
-  :defer t
-  :hook (css-mode . smartparens-mode)
-  :hook (css-mode . lsp-deferred)
-  :hook (scss-mode . prettier-js-mode)
-  :init
-  (put 'css-indent-offset 'safe-local-variable #'integerp))
-
-(use-package scss-mode
-  :hook (scss-mode . smartparens-mode)
-  :hook (scss-mode . lsp-deferred)
-  :hook (scss-mode . prettier-js-mode)
-  :defer t
-  :mode "\\.scss\\'")
-
-(use-package counsel-css
-  :defer t)
-
-(use-package less-css-mode
-  :defer t
-  :mode "\\.less\\'"
-  :hook (less-css-mode . smartparens-mode)
-  :hook (less-css-mode . lsp-deferred)
-  :hook (less-css-mode . prettier-js-mode))
-
-(use-package rainbow-delimiters)
-
-#+end_src
-
-** rsjx mode
- #+begin_src emacs-lisp
-(use-package rjsx-mode
-  :defer t
-  :after compile
-  :mode "\\.[mc]?jsx?\\'"
-  :mode "\\.es6\\'"
-  :mode "\\.pac\\'"
-  :interpreter "node"
-  :hook (rjsx-mode . rainbow-delimiters-mode)
-  :hook (rjsx-mode . lsp-deferred)
-  :init
-  (add-to-list 'compilation-error-regexp-alist 'node)
-  (add-to-list 'compilation-error-regexp-alist-alist
-               '(node "^[[:blank:]]*at \\(.*(\\|\\)\\(.+?\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)"
-                      2 3 4))
-  :config
-  (setq js-chain-indent                  t
-        js2-basic-offset                 2
-        ;; ignore shebangs
-        js2-skip-preprocessor-directives t
-        ;; Flycheck handles this already
-        js2-mode-show-parse-errors       nil
-        js2-mode-show-strict-warnings    nil
-        ;; conflicting with eslint, Flycheck already handles this
-        js2-strict-missing-semi-warning  nil
-        js2-highlight-level              3
-        js2-idle-timer-delay             0.15))
-
-(use-package prettier-js
-  :defer t
-  :after (rjsx-mode web-mode typescript-mode)
-  :hook ((rjsx-mode typescript-mode) . prettier-js-mode)
-  :config
-  (setq prettier-js-args '("--single-quote" "--jsx-single-quote")))
-
-#+end_src
-
-** Type script
-#+begin_src emacs-lisp
-(use-package typescript-mode
-  :defer t
-  :hook (typescript-mode     . rainbow-delimiters-mode)
-  :hook (typescript-tsx-mode . rainbow-delimiters-mode)
-  :hook (typescript-mode     . lsp-deferred)
-  :hook (typescript-tsx-mode . lsp-deferred)
-  :hook (typescript-mode     . prettier-js-mode)
-  :hook (typescript-tsx-mode . prettier-js-mode)
-  :commands typescript-tsx-mode
-  :after flycheck
-  :init
-  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . typescript-tsx-mode))
-  :config
-  (with-eval-after-load 'flycheck
-    (flycheck-add-mode 'javascript-eslint 'web-mode)
-    (flycheck-add-mode 'javascript-eslint 'typescript-mode)
-    (flycheck-add-mode 'javascript-eslint 'typescript-tsx-mode)
-    (flycheck-add-mode 'typescript-tslint 'typescript-tsx-mode))
-  (when (fboundp 'web-mode)
-    (define-derived-mode typescript-tsx-mode web-mode "TypeScript-TSX"))
-  (autoload 'js2-line-break "js2-mode" nil t))
-
-(use-package tide
-  :defer t
-  :hook (tide-mode . tide-hl-identifier-mode)
-  :config
-  (setq tide-completion-detailed              t
-        tide-always-show-documentation        t
-        tide-server-may-response-length       524288
-        tide-completion-setup-company-backend nil)
-
-  (advice-add #'tide-setup :after #'eldoc-mode))
-
-#+end_src
-
-
-** Java
-#+begin_src emacs-lisp
-(use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
-
-(use-package dap-mode :after lsp-mode :config (dap-auto-configure-mode))
-(use-package dap-java :ensure nil)
-#+end_src
-
-** Dart / Flutter
-#+begin_src emacs-lisp
-;; Assuming usage with dart-mode
-(use-package dart-mode
-  ;; Optional
-  :hook (dart-mode . flutter-test-mode))
-
-(use-package flutter
-  :after dart-mode
-  :bind (:map dart-mode-map
-              ("C-M-x" . #'flutter-run-or-hot-reload))
+(use-package treesit-auto
   :custom
-  (flutter-sdk-path "~/opensource/flutter/"))
-#+end_src
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
 
-** Rust
-#+begin_src emacs-lisp
-(use-package rust-mode)
-#+end_src
+  #+end_src
+
 * dockerfile-mode
 #+begin_src emacs-lisp
 (use-package dockerfile-mode
