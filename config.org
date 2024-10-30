@@ -11,6 +11,9 @@
 (use-package pass)
 (auth-source-pass-enable)
 
+;; set default coding of buffers
+(setq default-buffer-file-coding-system 'utf-8-unix)
+
 (use-package request);toggl needs this
 ;; supress welcome screen
 (setq inhibit-startup-message t)
@@ -395,6 +398,10 @@ Translate word at point or complete region directly via google translate API cal
 (use-package flycheck
   :init (global-flycheck-mode)
   )
+
+(setq js-indent-level 2)
+(flycheck-add-mode 'javascript-eslint 'ts-ts-mode)
+
  #+end_src
 ** flycheck-color-mode-line
  #+begin_src emacs-lisp
@@ -507,6 +514,10 @@ This is adding some discipline. Keep your commit messages short.
                      (setq-local git-commit-summary-max-length 50)
                      (setq-local fill-column 72)))
   )
+#+end_src
+* terraform mode
+#+begin_src emacs-lisp
+(use-package terraform-mode)
 #+end_src
 * npm mode
   #+begin_src emacs-lisp
@@ -872,23 +883,10 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
   (auto-fill-mode t)
   (reftex-mode t)
   (TeX-engine-set "luatex")
+  (setq TeX-command-default "LuaLaTeX")
   (setq TeX-electric-math (cons "$" "$") ) ; auto close dollars
   (setq TeX-electric-sub-and-superscript t) ; use _{} instead of _
-  (setq font-latex-fontify-script 'multi-level) ; 2^2^2 as multiple scripts
-  ;; Use zathura for previews
-  (setq TeX-PDF-mode t)
-  (setq TeX-source-correlate-mode t)
-  (add-to-list 'TeX-view-program-selection '(output-pdf "Zathura"))
-  ;; Hide some boilerplate
-  (TeX-fold-mode 1)
-  ;; Big faces for sections, chapters, etc.
-  (set-face-attribute 'font-latex-sectioning-1-face nil
-                      :foreground "#ffcc66" :height 1.5 :bold t)
-  (set-face-attribute 'font-latex-sectioning-2-face nil
-                      :foreground "#ffcc66" :height 1.2 :bold t)
-  (set-face-attribute 'font-latex-sectioning-3-face nil
-                      :foreground "#ffcc66" :height 1.2 :bold nil)
-  )
+  (setq font-latex-fontify-script 'multi-level)) ; 2^2^2 as multiple scripts
 (add-hook 'LaTeX-mode-hook 'my-latex)
 
 #+end_src
