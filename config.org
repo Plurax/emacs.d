@@ -250,8 +250,14 @@ Call all-the-icons-install-fonts if icons are not shown correctly in modeline.
 (use-package copilot
   :vc (:url "https://github.com/copilot-emacs/copilot.el"
             :rev :newest
-            :branch "main"))
-(add-hook 'go-ts-mode-hook #'copilot-mode)
+            :branch "main")
+  :hook (prog-mode . copilot-mode)
+  :bind (:map copilot-completion-map
+              ("<tab>" . 'copilot-accept-completion)
+              ("TAB" . 'copilot-accept-completion)
+              ("C-TAB" . 'copilot-accept-completion-by-word)
+              ("C-<tab>" . 'copilot-accept-completion-by-word)))
+
 (use-package copilot-chat)
 
 #+end_src
@@ -882,8 +888,8 @@ Setting entry-empty-p function to nil will avoid ignoring empty bodied drill ite
   (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
   (org-ai-global-mode) ; installs global keybindings on C-c M-a
   :config
-  (setq org-ai-default-chat-model "gpt-4o") ; if you are on the gpt-4 beta:
-  (org-ai-install-yasnippets)) ; if you are using yasnippet and want `ai` snippets
+  (setq org-ai-default-chat-model "gpt-4o")) ; if you are on the gpt-4 beta:
+  ;(org-ai-install-yasnippets)) ; if you are using yasnippet and want `ai` snippets
 #+end_src
 
 ** ox-report
