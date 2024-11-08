@@ -245,6 +245,16 @@ Call all-the-icons-install-fonts if icons are not shown correctly in modeline.
   :bind (:map projectile-mode-map
               ("C-c p" . projectile-command-map)))
 #+end_src
+* Copilot
+#+begin_src emacs-lisp
+(use-package copilot
+  :vc (:url "https://github.com/copilot-emacs/copilot.el"
+            :rev :newest
+            :branch "main"))
+(add-hook 'go-ts-mode-hook #'copilot-mode)
+(use-package copilot-chat)
+
+#+end_src
 * Misc packages
 ** docker
  #+begin_src emacs-lisp
@@ -340,6 +350,7 @@ Translate word at point or complete region directly via google translate API cal
            typescript-ts-mode
            js-ts-mode) . lsp-deferred)
          (c-ts-mode          . lsp-deferred)
+         (go-ts-mode          . lsp-deferred)
          (vue-ts-mode . lsp-deferred)
          (c++-ts-mode        . lsp-deferred)
          (html-mode       . lsp-deferred)
@@ -385,6 +396,29 @@ Translate word at point or complete region directly via google translate API cal
   (global-treesit-auto-mode))
 
   #+end_src
+
+** go
+
+#+begin_src emacs-lisp
+(use-package go-ts-mode
+  :mode "\\.go\\'"
+  )
+
+;; Set up before-save hooks to format buffer and add/delete imports.
+;; Make sure you don't have other gofmt/goimports hooks enabled.
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-ts-mode-hook #'lsp-go-install-save-hooks)
+
+(use-package go-tag
+  :ensure t
+)
+
+(use-package godoctor
+  :ensure t
+)
+#+end_src
 
 * dockerfile-mode
 #+begin_src emacs-lisp
@@ -479,7 +513,7 @@ Translate word at point or complete region directly via google translate API cal
 
 * yasnippet
 #+begin_src emacs-lisp
-(use-package yasnippet :ensure t)
+;(use-package yasnippet :ensure t)
 #+end_src
 * markdown-mode
 #+begin_src emacs-lisp
@@ -501,7 +535,19 @@ Translate word at point or complete region directly via google translate API cal
 Magit is the incredible git client within emacs!
 Whenever in a repo - press =C-x g= to get a separate status buffer.
 #+begin_src emacs-lisp
+(require 'transient)
 (use-package magit)
+
+;; need to install libsqlite3 from system (sudo apt-get ...)
+(use-package sqlite3)
+(use-package forge
+  :after magit
+  :config
+  (push '("gitlab.qvest-digital.com"               ; GITHOST
+        "gitlab.qvest-digital.com/api/v4"        ; APIHOST
+        "gitlab.qvest-digital.com"               ; WEBHOST and INSTANCE-ID
+        forge-gitlab-repository)    ; CLASS
+      forge-alist))
 
 #+end_src
 
@@ -836,7 +882,7 @@ Setting entry-empty-p function to nil will avoid ignoring empty bodied drill ite
   (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
   (org-ai-global-mode) ; installs global keybindings on C-c M-a
   :config
-  (setq org-ai-default-chat-model "gpt-4") ; if you are on the gpt-4 beta:
+  (setq org-ai-default-chat-model "gpt-4o") ; if you are on the gpt-4 beta:
   (org-ai-install-yasnippets)) ; if you are using yasnippet and want `ai` snippets
 #+end_src
 
@@ -878,6 +924,7 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 
 * Latex
 
+#+begin_src emacs-lisp
 (defun my-latex ()
   "Latex mode customizations"
   (auto-fill-mode t)
@@ -886,10 +933,29 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
   (setq TeX-command-default "LuaLaTeX")
   (setq TeX-electric-math (cons "$" "$") ) ; auto close dollars
   (setq TeX-electric-sub-and-superscript t) ; use _{} instead of _
+<<<<<<< HEAD
   (setq font-latex-fontify-script 'multi-level)) ; 2^2^2 as multiple scripts
+=======
+  (setq font-latex-fontify-script 'multi-level) ; 2^2^2 as multiple scripts
+  ;; Use zathura for previews
+  (setq TeX-PDF-mode t)
+  (setq TeX-source-correlate-mode t)
+;  (add-to-list 'TeX-view-program-selection '(output-pdf "Zathura"))
+  ;; Hide some boilerplate
+  (TeX-fold-mode 1)
+  ;; Big faces for sections, chapters, etc.
+  (set-face-attribute 'font-latex-sectioning-1-face nil
+                      :foreground "#ffcc66" :height 1.5 :bold t)
+  (set-face-attribute 'font-latex-sectioning-2-face nil
+                      :foreground "#ffcc66" :height 1.2 :bold t)
+  (set-face-attribute 'font-latex-sectioning-3-face nil
+                      :foreground "#ffcc66" :height 1.2 :bold nil)
+  )
+>>>>>>> 66a4e04 (Copilot, go mode misc)
 (add-hook 'LaTeX-mode-hook 'my-latex)
 
 #+end_src
+
 * Mail
 #+begin_src emacs-lisp
 (use-package async)
@@ -1017,6 +1083,15 @@ Allow inline execution of specific babel modes.
 #+end_src
 * Tail (provide)
  #+begin_src emacs-lisp
+(set-language-environment 'utf-8)
+(set-default-coding-systems 'utf-8)
+(set-keyboard-coding-system 'utf-8-unix)
+
+(prefer-coding-system 'utf-8)
+(setq-default buffer-file-coding-system 'utf-8)
+(setq coding-system-for-read 'utf-8)
+(setq coding-system-for-write 'utf-8)
+
 (provide 'init)
  #+end_src
 
