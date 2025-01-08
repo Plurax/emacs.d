@@ -553,14 +553,14 @@ Whenever in a repo - press =C-x g= to get a separate status buffer.
 
 ;; need to install libsqlite3 from system (sudo apt-get ...)
 (use-package sqlite3)
-(use-package forge
-  :after magit
-  :config
-  (push '("gitlab.qvest-digital.com"               ; GITHOST
-        "gitlab.qvest-digital.com/api/v4"        ; APIHOST
-        "gitlab.qvest-digital.com"               ; WEBHOST and INSTANCE-ID
-        forge-gitlab-repository)    ; CLASS
-      forge-alist))
+;; (use-package forge
+;;   :after magit
+;;   :config
+;;   (push '("gitlab.qvest-digital.com"               ; GITHOST
+;;         "gitlab.qvest-digital.com/api/v4"        ; APIHOST
+;;         "gitlab.qvest-digital.com"               ; WEBHOST and INSTANCE-ID
+;;         forge-gitlab-repository)    ; CLASS
+;;       forge-alist))
 
 (use-package yaml)
 #+end_src
@@ -1024,6 +1024,26 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 (load-library "mu4e-contexts.el")
 (add-to-list 'load-path "~/opensource/mu4e-dashboard")
 (require 'mu4e-dashboard)
+
+;; add tagging
+(add-to-list 'mu4e-marks
+           '(tag
+             :char "i"
+             :prompt "tag"
+             :ask-target (lambda () (completing-read "Set project tag or custom tag: "
+                              (or toggl-projects '()) ;; Use toggl-projects or fallback to empty list
+                              nil
+                              nil))
+             :action (lambda (docid msg target)
+                       (mu4e-action-retag-message msg (concat "+" target)))))
+
+(defun my-mu4e-mark-add-tag()
+  "Add a tag to the message at point."
+  (interactive)
+  (mu4e-headers-mark-and-next 'tag))
+
+(define-key mu4e-headers-mode-map (kbd "g") #'my-mu4e-mark-add-tag)
+
 #+end_src
 * Helper functions
 This can be used with REST Client mode for retrieving user/pass to avoid pasting
@@ -1127,5 +1147,6 @@ Allow inline execution of specific babel modes.
     (mu4e-dashboard)
     )
 
+(org-toggl-set-workspace "Christoph's workspace")
 (add-hook 'window-setup-hook 'my-initial-window-setup)
 #+end_src
