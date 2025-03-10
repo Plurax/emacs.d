@@ -257,7 +257,9 @@ Call all-the-icons-install-fonts if icons are not shown correctly in modeline.
               ("<tab>" . 'copilot-accept-completion)
               ("TAB" . 'copilot-accept-completion)
               ("C-TAB" . 'copilot-accept-completion-by-word)
-              ("C-<tab>" . 'copilot-accept-completion-by-word)))
+              ("C-<tab>" . 'copilot-accept-completion-by-word))
+  :config (add-to-list 'copilot-major-mode-alist '("js-ts" . "javascript"))
+  (add-to-list 'copilot-major-mode-alist '("html-ts" . "html")))
 
 (use-package copilot-chat)
 
@@ -334,7 +336,8 @@ Translate word at point or complete region directly via google translate API cal
      (vue "https://github.com/ikatyang/tree-sitter-vue.git")
      (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
      (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-     (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+     (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+     (kotlin . ("https://github.com/fwcd/tree-sitter-kotlin"))))
 
 (add-to-list 'load-path "/home/chuhlich/opensource/vue-ts-mode")
 (require 'vue-ts-mode)
@@ -431,6 +434,28 @@ Translate word at point or complete region directly via google translate API cal
 
 #+begin_src emacs-lisp
 (use-package yaml-mode)
+#+end_src
+
+** kotlin
+#+begin_src emacs-lisp
+(use-package gradle-mode)
+(use-package flycheck-kotlin)
+
+(use-package kotlin-ts-mode)
+
+(defun is-gradle-project-dir (dir)
+  (file-exists-p (expand-file-name "build.gradle" dir)))
+
+(defun find-gradle-root-dir (&optional dir)
+  (let ((root (locate-dominating-file (or dir default-directory) 'is-gradle-project-dir)))
+    (if root
+        (or (find-gradle-root-dir (file-name-directory (directory-file-name root)))
+            root))))
+
+(add-hook 'kotlin-mode-hook
+          (lambda ()
+            (flycheck-mode t)
+            (lsp-kotlin-mode-enable)))
 #+end_src
 
 * dockerfile-mode
@@ -644,7 +669,6 @@ Whenever in a repo - press =C-x g= to get a separate status buffer.
 (use-package org-roam-ui)
 (use-package org-superstar)
 (use-package org-super-agenda)
-(use-package org-gcal)
 
  #+end_src
 ** org-toggl
@@ -1042,7 +1066,7 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
   (interactive)
   (mu4e-headers-mark-and-next 'tag))
 
-(define-key mu4e-headers-mode-map (kbd "g") #'my-mu4e-mark-add-tag)
+(define-key mu4e-headers-mode-map (kbd "c") #'my-mu4e-mark-add-tag)
 
 #+end_src
 * Helper functions
