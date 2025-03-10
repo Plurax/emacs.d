@@ -109,8 +109,14 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 ** TAB settings
 #+begin_src emacs-lisp
 ;; set tabs to indent as white spaces and set default tab width to 2 white spaces
-(setq-default indent-tabs-mode nil)
+(setq-default indent-tabs-mode nil)  ;; Always use spaces
 (setq-default tab-width 2)
+(setq-default standard-indent 2)
+(setq-default js-switch-indent-offset 2)
+
+;; Use LSP format instead of Emacs' built-in formatter
+(setq-default electric-indent-inhibit t)
+(remove-hook 'before-save-hook 'eglot-format-buffer)
 ;(setq-default indent-line-function 'insert-tab)
 
 ;; setup: M-y saves the new yank to the clipboard.
@@ -317,6 +323,18 @@ Translate word at point or complete region directly via google translate API cal
    #+begin_src emacs-lisp
 (use-package which-key)
    #+end_src
+** plantuml
+#+begin_src emacs-lisp
+(use-package plantuml-mode
+  :config
+  (setq plantuml-jar-path "/home/chuhlich/opensource/plantuml/plantuml.jar")
+  (setq org-plantuml-jar-path
+        (expand-file-name "/home/chuhlich/opensource/plantuml/plantuml.jar"))
+  (setq plantuml-default-exec-mode 'jar))
+
+(add-to-list
+  'org-src-lang-modes '("plantuml" . plantuml))
+#+end_src
 * Major modes and programming setups
 ** vue ts
 #+begin_src emacs-lisp
@@ -370,6 +388,8 @@ Translate word at point or complete region directly via google translate API cal
   :custom
   (lsp-idle-delay 0.6)
   (lsp-use-plist t))
+
+(setq lsp-volar-take-over-mode nil)
 
 (use-package lsp-ui
   :commands lsp-ui-mode
@@ -433,7 +453,8 @@ Translate word at point or complete region directly via google translate API cal
 ** yaml
 
 #+begin_src emacs-lisp
-(use-package yaml-mode)
+(use-package yaml-mode
+  )
 #+end_src
 
 ** kotlin
@@ -551,7 +572,7 @@ Translate word at point or complete region directly via google translate API cal
 
 * yasnippet
 #+begin_src emacs-lisp
-;(use-package yasnippet :ensure t)
+(yas-global-mode)
 #+end_src
 * markdown-mode
 #+begin_src emacs-lisp
@@ -628,7 +649,8 @@ Whenever in a repo - press =C-x g= to get a separate status buffer.
      (shell . t)
      (C . t)
      (lisp . t)
-     (latex . t)))
+     (latex . t)
+     (plantuml . t)))
   (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
   (setq org-babel-python-command "python3")
   (setq py-python-command "python3")

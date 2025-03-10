@@ -4,6 +4,9 @@
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("elpa" . "https://elpa.gnu.org/packages/")))
 
+(customize-set-variable 'package-archive-priorities '(("melpa"    . 99)
+                                                      ("elpa"  . 0)))
+
 (package-initialize)
 (unless package-archive-contents
  (package-refresh-contents))
