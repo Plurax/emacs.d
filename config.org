@@ -9,6 +9,16 @@
 * Visual stuff and global settings
 ** General
    #+begin_src emacs-lisp
+(set-language-environment 'utf-8)
+(set-default-coding-systems 'utf-8)
+(set-keyboard-coding-system 'utf-8-unix)
+
+(prefer-coding-system 'utf-8)
+(setq-default buffer-file-coding-system 'utf-8)
+(setq coding-system-for-read 'utf-8)
+(setq coding-system-for-write 'utf-8)
+
+
 (use-package pass)
 (auth-source-pass-enable)
 
@@ -1152,14 +1162,6 @@ Allow inline execution of specific babel modes.
 #+end_src
 * Tail (provide)
  #+begin_src emacs-lisp
-(set-language-environment 'utf-8)
-(set-default-coding-systems 'utf-8)
-(set-keyboard-coding-system 'utf-8-unix)
-
-(prefer-coding-system 'utf-8)
-(setq-default buffer-file-coding-system 'utf-8)
-(setq coding-system-for-read 'utf-8)
-(setq coding-system-for-write 'utf-8)
 
 (provide 'init)
  #+end_src
