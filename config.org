@@ -1,4 +1,3 @@
-
 #+TITLE: My Emacs Configuration
 #+AUTHOR: Christoph Uhlich
 #+EMAIL: christoph@familie-uhlich.de
@@ -245,14 +244,6 @@ Call all-the-icons-install-fonts if icons are not shown correctly in modeline.
             (define-key eyebrowse-mode-map (kbd "<f6>") 'eyebrowse-switch-to-window-config-7))
   )
  #+end_src
-** company emojify
-#+begin_src emacs-lisp
-(use-package company-emojify
-  :config
-  (add-to-list 'company-backends 'company-emojify)
-  (setq company-emojify-annotation "unicode"));use the unicode glyphs to show emojis in auto complete popup
-
-#+end_src
 ** Projectile
 #+begin_src emacs-lisp
 (use-package projectile
@@ -400,6 +391,7 @@ Translate word at point or complete region directly via google translate API cal
   (lsp-use-plist t))
 
 (setq lsp-volar-take-over-mode nil)
+(setq lsp-completion-provider :capf)
 
 (use-package lsp-ui
   :commands lsp-ui-mode
@@ -515,34 +507,6 @@ Translate word at point or complete region directly via google translate API cal
   :config (flycheck-pos-tip-mode)
   )
  #+end_src
-* Code completion with company
-#+begin_src emacs-lisp
-(use-package company
-  :defer t
-  :init (global-company-mode)
-  :config
-  (setq lsp-completion-provider :capf
-        company-minimum-prefix-length     2
-        company-toolsip-limit             14
-        company-tooltip-align-annotations t
-        company-require-match             'never
-        company-global-modes              '(not erc-mode message-mode help-mode gud-mode)
-        company-frontends
-        '(company-pseudo-tooltip-frontend ; always show candidates in overlay tooltip
-          company-echo-metadata-frontend) ; show selected candidate docs in echo area
-        company-backends '(company-capf)
-        company-auto-commit         nil
-        company-auto-complete-chars nil
-        company-dabbrev-other-buffers nil
-        company-dabbrev-ignore-case nil
-        company-dabbrev-downcase    nil))
-
-(use-package company-dict
-  :after company
-  :config
-  (setq company-dict-dir (expand-file-name "dicts" user-emacs-directory)))
-
-#+end_src
 * Vertico
 #+begin_src emacs-lisp
 (use-package vertico
@@ -580,6 +544,48 @@ Translate word at point or complete region directly via google translate API cal
               ("DEL" . vertico-directory-delete-char)
               ("M-DEL" . vertico-directory-delete-word))
   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+#+end_src
+* Corfu in buffer completion
+#+begin_src emacs-lisp
+(use-package corfu
+  :after orderless
+  :defer t
+  :commands (corfu-mode global-corfu-mode)
+  :hook ((prog-mode . corfu-mode)
+         (shell-mode . corfu-mode)
+         (eshell-mode . corfu-mode))
+  :bind
+  (:map corfu-map
+        ("TAB" . corfu-next)
+        ([ tab ] . corfu-next)
+        ("S-TAB" . corfu-previous)
+        ([backtab] . corfu-previous))
+  :custom
+  (corfu-cycle t)           ;; Enable cycling for `corfu-next/previous'
+  (corfu-preselect 'prompt) ;; Always preselect the prompt
+  (corfu-auto t)            ;; Enables auto-completion
+  (corfu-popupinfo-mode t)  ;; Enable popup information
+  (corfu-auto-delay 0.1)    ;; lower delay for completion
+  
+  (completion-ignore-case t)
+
+  (text-mode-ispell-word-completion nil) ;; Disable Ispell completion
+  
+  :config
+  (global-corfu-mode))
+
+(use-package cape                ; Collection of At-Point Extensions
+  :after corfu
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-emoji))
+
+(use-package kind-icon :after corfu
+  :custom (kind-icon-default-face 'corfu-default))
+
+(unless (display-graphic-p)
+  (use-package corfu-terminal :after corfu :config (corfu-terminal-mode +1)))
 
 #+end_src
 * yasnippet
