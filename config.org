@@ -407,11 +407,6 @@ Translate word at point or complete region directly via google translate API cal
   (lsp-ui-peek-always-show t)
   (lsp-ui-sideline-show-hover t))
 
-(use-package lsp-ivy
-  :defer t
-  :after lsp
-  :commands lsp-ivy-workspace-symbol)
-
 (use-package exec-path-from-shell
   :defer t
   :init (exec-path-from-shell-initialize))
@@ -548,38 +543,45 @@ Translate word at point or complete region directly via google translate API cal
   (setq company-dict-dir (expand-file-name "dicts" user-emacs-directory)))
 
 #+end_src
-* Menu package ivy
+* Vertico
 #+begin_src emacs-lisp
-(use-package ivy
-  :config
-  (ivy-mode)
-  (setq ivy-use-virtual-buffers t
-        enable-recursive-minibuffers t))
-#+end_src
-* Completion frontend counsel
-#+begin_src emacs-lisp
-(use-package counsel
-  :after ag ivy magit
-  :bind (("\C-s" . 'swiper)
-         ("C-c C-r" . 'ivy-resume)
-         ("M-x" . 'counsel-M-x)
-         ("C-x C-f" . 'counsel-find-file)
-         ("<f1> f" . 'counsel-describe-function)
-         ("<f1> v" . 'counsel-describe-variable)
-         ("<f1> l" . 'counsel-find-library)
-         ("<f2> i" . 'counsel-info-lookup-symbol)
-         ("<f2> u" . 'counsel-unicode-char)
-         ("C-c g" . 'counsel-git)
-         ("C-c j" . 'counsel-git-grep)
-         ("C-c k" . 'counsel-ag)
-         ("C-x l" . 'counsel-locate)
-         ("C-x g" . 'magit-status)
-         ("C-r" . 'counsel-minibuffer-history))
-  :init (setq counsel-git-grep-skip-counting-lines t)
-  )
+(use-package vertico
+  :ensure t
+  :init
+  (vertico-mode))
+
+(use-package savehist
+  :init
+  (savehist-mode))
+
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-defaults nil)
+  (completion-category-overrides '((file (styles partial-completion)))))
+
+(use-package marginalia
+  :ensure t
+  :init
+  (marginalia-mode))
+
+(use-package embark
+  :ensure t
+  :bind
+  (("C-." . embark-act)
+   ("C-;" . embark-dwim)
+   ("C-h B" . embark-bindings)))
+(use-package vertico-directory
+  :after vertico
+  :ensure nil
+  :bind (:map vertico-map
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word))
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
 #+end_src
-
 * yasnippet
 #+begin_src emacs-lisp
 (yas-global-mode)
@@ -1022,7 +1024,7 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
 ; mu4e Mails
 (require 'mu4e)
-(setq mu4e-completing-read-function 'ivy-completing-read)
+;(setq mu4e-completing-read-function 'ivy-completing-read)
 (require 'subr-x)
 
 (setq mu4e-mu-home "~/.cache/mu/")
@@ -1144,15 +1146,11 @@ The current setup is =cu/org-agenda-context=
 (defun cu/choose-org-context ()
   "Choose the org agenda context from the alist."
   (interactive)
-  (setq cu/org-agenda-context 
-        (ivy-read "Describe function: "
-                  (mapcar 'car cu/org-agenda-context-options)
-                  :preselect (ivy-thing-at-point)
-                  :require-match t
-                  :sort t
-                  :caller 'cu/choose-org-context))
-  (setq org-agenda-files (cdr (assoc cu/org-agenda-context cu/org-agenda-context-options)))
-  (message "Using %s file set for org-agenda." cu/org-agenda-context))
+  (let* ((options (mapcar #'car cu/org-agenda-context-options))
+         (choice (completing-read "Describe function: " options nil t nil nil (thing-at-point 'symbol))))
+    (setq cu/org-agenda-context choice)
+    (setq org-agenda-files (cdr (assoc choice cu/org-agenda-context-options)))
+    (message "Using %s file set for org-agenda." cu/org-agenda-context)))
 #+end_src
 Allow inline execution of specific babel modes.
  #+begin_src emacs-lisp
