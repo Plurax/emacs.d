@@ -31,8 +31,6 @@
 (defun prev-window ()
   (interactive)
   (other-window -1))
-(global-set-key (kbd "C-'") 'other-window)
-(global-set-key (kbd "C-;") 'prev-window)
 
 (setq gc-cons-threshold 1000000)
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
@@ -74,7 +72,6 @@ I need this when switching between docked and stand alone mode.
 ** Switch window
 #+begin_src emacs-lisp
 (global-set-key (kbd "C-'") 'other-window)
-(global-set-key (kbd "C-;") 'prev-window)
 #+end_src
 ** comint and Shell modifications
 Changed a default colour to "dodger blue" to make ls colours easier to see.
