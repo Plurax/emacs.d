@@ -126,7 +126,6 @@ http://stackoverflow.com/questions/6780468/emacs-m-x-shell-and-the-overriding-of
 ;; Use LSP format instead of Emacs' built-in formatter
 (setq-default electric-indent-inhibit t)
 (remove-hook 'before-save-hook 'eglot-format-buffer)
-;(setq-default indent-line-function 'insert-tab)
 
 ;; setup: M-y saves the new yank to the clipboard.
 (setq yank-pop-change-selection t)
@@ -339,25 +338,6 @@ Translate word at point or complete region directly via google translate API cal
 * Major modes and programming setups
 ** vue ts
 #+begin_src emacs-lisp
-(setq treesit-language-source-alist
- '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-     (cmake "https://github.com/uyha/tree-sitter-cmake")
-     (css "https://github.com/tree-sitter/tree-sitter-css")
-     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-     (go "https://github.com/tree-sitter/tree-sitter-go")
-     (html "https://github.com/tree-sitter/tree-sitter-html")
-     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-     (json "https://github.com/tree-sitter/tree-sitter-json")
-     (make "https://github.com/alemuller/tree-sitter-make")
-     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-     (python "https://github.com/tree-sitter/tree-sitter-python")
-     (toml "https://github.com/tree-sitter/tree-sitter-toml")
-     (vue "https://github.com/ikatyang/tree-sitter-vue.git")
-     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-     (yaml "https://github.com/ikatyang/tree-sitter-yaml")
-     (kotlin . ("https://github.com/fwcd/tree-sitter-kotlin"))))
-
 (add-to-list 'load-path "/home/chuhlich/opensource/vue-ts-mode")
 (require 'vue-ts-mode)
 
@@ -379,7 +359,7 @@ Translate word at point or complete region directly via google translate API cal
            typescript-ts-mode
            js-ts-mode) . lsp-deferred)
          (c-ts-mode          . lsp-deferred)
-         (go-ts-mode          . lsp-deferred)
+         (go-mode          . lsp-deferred)
          (vue-ts-mode . lsp-deferred)
          (c++-ts-mode        . lsp-deferred)
          (html-mode       . lsp-deferred)
@@ -399,9 +379,13 @@ Translate word at point or complete region directly via google translate API cal
   (lsp-ui-peek-always-show t)
   (lsp-ui-sideline-show-hover t))
 
+
+(setq lsp-prefer-flymake nil)
+
 (use-package exec-path-from-shell
   :defer t
   :init (exec-path-from-shell-initialize))
+
 #+end_src
 ** Tailwind lsp
 #+begin_src emacs-lisp
@@ -415,36 +399,75 @@ Translate word at point or complete region directly via google translate API cal
 (require 'treesit)
 (treesit-available-p)
 
+;; Treesit-Auto: einmalig Grammars installieren lassen
 (use-package treesit-auto
   :custom
-  (treesit-auto-install 'prompt)
+  (treesit-auto-install t) ;; einmal automatisch bauen, dann ist Ruhe
   :config
-  (treesit-auto-add-to-auto-mode-alist 'all)
+  ;; Quellen explizit setzen (empfehlenswert):
+  (setq treesit-language-source-alist
+	      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+	        (cmake "https://github.com/uyha/tree-sitter-cmake")
+	        (css "https://github.com/tree-sitter/tree-sitter-css")
+	        (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+	        (go "https://github.com/tree-sitter/tree-sitter-go" "v0.19.1")
+	        (html "https://github.com/tree-sitter/tree-sitter-html")
+	        (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+	        (json "https://github.com/tree-sitter/tree-sitter-json")
+	        (make "https://github.com/alemuller/tree-sitter-make")
+	        (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+	        (python "https://github.com/tree-sitter/tree-sitter-python")
+	        (vue "https://github.com/ikatyang/tree-sitter-vue.git")
+	        (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+	        (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+	        (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
   (global-treesit-auto-mode))
 
-  #+end_src
+#+end_src
 
 ** go
 
 #+begin_src emacs-lisp
+;; Klassisches go-mode NICHT als Hauptmode verwenden,
+;; nur für Tools wie gofmt/goimports laden:
+(use-package go-mode
+  :ensure t
+  :commands (gofmt-before-save gofmt)
+  :custom (gofmt-command "goimports"))
+
+;; Immer go-ts-mode für .go verwenden
 (use-package go-ts-mode
   :mode "\\.go\\'"
-  )
+  :hook
+  (go-ts-mode . my-go-setup))
 
-;; Set up before-save hooks to format buffer and add/delete imports.
-;; Make sure you don't have other gofmt/goimports hooks enabled.
-(defun lsp-go-install-save-hooks ()
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
-(add-hook 'go-ts-mode-hook #'lsp-go-install-save-hooks)
+(defun my-go-before-save ()
+  "Format/Imports nur ausführen, wenn LSP bereit; sonst fallback."
+  (cond
+   ;; LSP ist aktiv → LSP-Format + Imports (nur wenn Server es kann)
+   ((bound-and-true-p lsp-mode)
+    (when (lsp-feature? "textDocument/formatting")
+      (lsp-format-buffer))
+    (when (lsp-feature? "textDocument/codeAction")
+      (lsp-organize-imports)))
+   ;; Fallback: goimports direkt, wenn vorhanden
+   ((executable-find "goimports")
+    (let ((gofmt-command "goimports"))
+      (gofmt)))))
+
+(defun my-go-setup ()
+  (setq-local tab-width 2)
+  (lsp-deferred)
+  ;; pufferlokal (!), damit es nur in Go greift und erst nach Mode/LS init:
+  (add-hook 'before-save-hook #'my-go-before-save nil t))
 
 (use-package go-tag
   :ensure t
-)
+  )
 
 (use-package godoctor
   :ensure t
-)
+  )
 #+end_src
 
 ** yaml
@@ -452,28 +475,6 @@ Translate word at point or complete region directly via google translate API cal
 #+begin_src emacs-lisp
 (use-package yaml-mode
   )
-#+end_src
-
-** kotlin
-#+begin_src emacs-lisp
-(use-package gradle-mode)
-(use-package flycheck-kotlin)
-
-(use-package kotlin-ts-mode)
-
-(defun is-gradle-project-dir (dir)
-  (file-exists-p (expand-file-name "build.gradle" dir)))
-
-(defun find-gradle-root-dir (&optional dir)
-  (let ((root (locate-dominating-file (or dir default-directory) 'is-gradle-project-dir)))
-    (if root
-        (or (find-gradle-root-dir (file-name-directory (directory-file-name root)))
-            root))))
-
-(add-hook 'kotlin-mode-hook
-          (lambda ()
-            (flycheck-mode t)
-            (lsp-kotlin-mode-enable)))
 #+end_src
 
 * dockerfile-mode
@@ -1055,7 +1056,6 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
 ; mu4e Mails
 (require 'mu4e)
-;(setq mu4e-completing-read-function 'ivy-completing-read)
 (require 'subr-x)
 
 (setq mu4e-mu-home "~/.cache/mu/")

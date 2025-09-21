@@ -5,7 +5,6 @@
 - [Installing pre-requisites](#installing-pre-requisites)
     - [Mail tooling](#mail-tooling)
     - [CMake and clang](#cmake-and-clang)
-    - [Ivy (Copied from dfrib)](#ivy-copied-from-dfrib)
     - [Clone and build emacs with tree-sitter, native-compilation and native json:](#clone-and-build-emacs-with-tree-sitter-native-compilation-and-native-json)
 - [Using this repo for applying the settings](#using-this-repo-for-applying-the-settings)
 - [Setting up Emacs](#setting-up-emacs)
@@ -30,7 +29,6 @@ This is currently running on Ubuntu with emacs 30.0.x (snapshot build from sourc
 The core packages of my setup are:
 
 - [`magit`](https://magit.vc/) for any kind of Git interaction. `magit` is such an awesome Git client
-- [`ivy`](https://github.com/abo-abo/swiper) for minibuffer code completion.
 
 Some other convenience packages worth mentioning (as they require Emacs-external dependencies) are:
 
@@ -69,16 +67,6 @@ make
 ```bash
 sudo apt-get install cmake
 sudo apt-get install clang llvm libclang-dev clang-format
-```
-
-## Ivy (Copied from dfrib)
-
-`ivy` contains a lot of goodies, but to point out some specifics I use `ivy` primarily for `swiper` in-buffer search and for the `counsel` (`ivy`-enhanced) Emacs commands. For the latter, most frequently `counsel-git` (find tracked file in current repo), `counsel-git-grep` and `counsel-ag`. The latter make use of [`ag` - The Silver Searcher](https://github.com/ggreer/the_silver_searcher), and is useful when wanting to search through only parts of a repository, limited to a folder and all tracked file therein (recursively for all sub-folders).
-
-To allow using `counsel-ag`, install `ag`:
-
-```bash
-sudo apt-get install silversearcher-ag
 ```
 
 ## Clone and build emacs with tree-sitter, native-compilation and native json:
