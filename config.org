@@ -249,24 +249,6 @@ Call all-the-icons-install-fonts if icons are not shown correctly in modeline.
   :bind (:map projectile-mode-map
               ("C-c p" . projectile-command-map)))
 #+end_src
-* Copilot
-#+begin_src emacs-lisp
-(use-package copilot
-  :vc (:url "https://github.com/copilot-emacs/copilot.el"
-            :rev :newest
-            :branch "main")
-  :hook (prog-mode . copilot-mode)
-  :bind (:map copilot-completion-map
-              ("<tab>" . 'copilot-accept-completion)
-              ("TAB" . 'copilot-accept-completion)
-              ("C-TAB" . 'copilot-accept-completion-by-word)
-              ("C-<tab>" . 'copilot-accept-completion-by-word))
-  :config (add-to-list 'copilot-major-mode-alist '("js-ts" . "javascript"))
-  (add-to-list 'copilot-major-mode-alist '("html-ts" . "html")))
-
-(use-package copilot-chat)
-
-#+end_src
 * Misc packages
 ** docker
  #+begin_src emacs-lisp
@@ -679,6 +661,12 @@ Whenever in a repo - press =C-x g= to get a separate status buffer.
 ** org mode
  #+begin_src emacs-lisp
 (use-package verb)
+
+; prettify json responses in verb buffers
+(defun verb-json-response-mode-hook ()
+              (json-mode)
+              (json-pretty-print-buffer))
+
 (use-package org
   :bind (("C-c M" . 'org-agenda-view))
   :config
@@ -691,6 +679,7 @@ Whenever in a repo - press =C-x g= to get a separate status buffer.
      (C . t)
      (lisp . t)
      (latex . t)
+     (sql . t)
      (plantuml . t)))
   (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
   (setq org-babel-python-command "python3")
@@ -1001,7 +990,6 @@ Setting entry-empty-p function to nil will avoid ignoring empty bodied drill ite
 #+begin_src emacs-lisp
 (use-package ox-report)
 #+end_src
-
 * ibuffer
 Enter a buffer overview by pressing =C-x C-b=.
 More info:
