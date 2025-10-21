@@ -706,7 +706,8 @@ Whenever in a repo - press =C-x g= to get a separate status buffer.
   (setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
   (setq org-refile-use-outline-path 'file)
   (setq org-outline-path-complete-in-steps nil)
-  
+  (setq org-latex-compiler "lualatex")
+
   (add-hook 'org-timer-done-hook 'my-org-timer-done)
 
   (defun my-org-agenda-skip-all-siblings-but-first ()
@@ -728,6 +729,27 @@ Whenever in a repo - press =C-x g= to get a separate status buffer.
     (shell-command "canberra-gtk-play --file=/usr/share/sounds/gnome/default/alerts/string.ogg"))
   )
 
+(with-eval-after-load 'ox-latex
+  (setq org-latex-packages-alist
+        '(("" "fontspec" t)
+          ("main=german" "babel" t)
+          ("" "csquotes" t)))
+  
+  (setq org-latex-pdf-process
+        '("lualatex -interaction=nonstopmode -output-directory=%o %f"
+          "biber %b"
+          "lualatex -interaction=nonstopmode -output-directory=%o %f"
+          "lualatex -interaction=nonstopmode -output-directory=%o %f"))
+
+
+  (setq org-latex-default-packages-alist '((#1="" "amsmath" t ("lualatex" "xetex"))
+                                           (#1# "fontspec" t ("lualatex" "xetex"))
+                                           (#1# "graphicx" t) (#1# "longtable" nil) (#1# "wrapfig" nil)
+                                           (#1# "rotating" nil) ("normalem" "ulem" t)
+                                           (#1# "amsmath" t ("pdflatex")) (#1# "amssymb" t ("pdflatex"))
+                                           (#1# "capt-of" nil) (#1# "hyperref" nil)))
+  )
+
 (use-package org-ai)
 (use-package org-journal)
 (use-package org-msg)
@@ -735,7 +757,6 @@ Whenever in a repo - press =C-x g= to get a separate status buffer.
 (use-package org-roam-ui)
 (use-package org-superstar)
 (use-package org-super-agenda)
-
  #+end_src
 ** org-toggl
  #+begin_src emacs-lisp
@@ -1018,6 +1039,7 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 * Latex
 
 #+begin_src emacs-lisp
+
 (defun my-latex ()
   "Latex mode customizations"
   (auto-fill-mode t)
@@ -1026,14 +1048,10 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
   (setq TeX-command-default "LuaLaTeX")
   (setq TeX-electric-math (cons "$" "$") ) ; auto close dollars
   (setq TeX-electric-sub-and-superscript t) ; use _{} instead of _
-<<<<<<< HEAD
-  (setq font-latex-fontify-script 'multi-level)) ; 2^2^2 as multiple scripts
-=======
   (setq font-latex-fontify-script 'multi-level) ; 2^2^2 as multiple scripts
   ;; Use zathura for previews
   (setq TeX-PDF-mode t)
   (setq TeX-source-correlate-mode t)
-;  (add-to-list 'TeX-view-program-selection '(output-pdf "Zathura"))
   ;; Hide some boilerplate
   (TeX-fold-mode 1)
   ;; Big faces for sections, chapters, etc.
@@ -1044,7 +1062,6 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
   (set-face-attribute 'font-latex-sectioning-3-face nil
                       :foreground "#ffcc66" :height 1.2 :bold nil)
   )
->>>>>>> 66a4e04 (Copilot, go mode misc)
 (add-hook 'LaTeX-mode-hook 'my-latex)
 
 #+end_src
