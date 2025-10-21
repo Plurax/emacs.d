@@ -29,6 +29,7 @@ This is currently running on Ubuntu with emacs 30.0.x (snapshot build from sourc
 The core packages of my setup are:
 
 - [`magit`](https://magit.vc/) for any kind of Git interaction. `magit` is such an awesome Git client
+- [`vertico`](https://github.com/abo-abo/swiper) for minibuffer code completion.
 
 Some other convenience packages worth mentioning (as they require Emacs-external dependencies) are:
 
@@ -40,11 +41,20 @@ Some other convenience packages worth mentioning (as they require Emacs-external
 # Installing pre-requisites
 
 Before we start, activate source repositories and resync the package index files for APT:
-To activate source repositories, you can select "Source code"  list entry within the software sources list tool.
+For adding source repos in Ubuntu, add the below snippet to the new config file /etc/apt/sources.list.d/ubuntu.sources
+
+```bash
+Types: deb-src
+URIs: http://us.archive.ubuntu.com/ubuntu/
+Suites: noble noble-updates noble-backports noble-proposed
+Components: main restricted universe multiverse
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+```
+
+Alternatively select "Source code"  list entry within the software sources list tool.
 
 ```bash
 sudo apt-get update
-sudo apt build-dep emacs
 ```
 
 ## Mail tooling
@@ -73,7 +83,7 @@ sudo apt-get install clang llvm libclang-dev clang-format
 
 ```bash
 cd ~/opensource
-sudo apt-get install libjansson4 libjansson-dev
+sudo apt-get install libjansson4 libjansson-dev libmagickwand-dev
 git clone https://git.savannah.gnu.org/git/emacs.git
 cd emacs
 ./autogen.sh
