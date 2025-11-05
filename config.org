@@ -230,15 +230,13 @@ Call all-the-icons-install-fonts if icons are not shown correctly in modeline.
   (global-unset-key (kbd "C-c C-w"))
   :config
   (eyebrowse-mode t)
-  (progn
-            (define-key eyebrowse-mode-map (kbd "<f12>") 'eyebrowse-switch-to-window-config-1)
-            (define-key eyebrowse-mode-map (kbd "<f11>") 'eyebrowse-switch-to-window-config-2)
-            (define-key eyebrowse-mode-map (kbd "<f10>") 'eyebrowse-switch-to-window-config-3)
-            (define-key eyebrowse-mode-map (kbd "<f9>") 'eyebrowse-switch-to-window-config-4)
-            (define-key eyebrowse-mode-map (kbd "<f8>") 'eyebrowse-switch-to-window-config-5)
-            (define-key eyebrowse-mode-map (kbd "<f7>") 'eyebrowse-switch-to-window-config-6)
-            (define-key eyebrowse-mode-map (kbd "<f6>") 'eyebrowse-switch-to-window-config-7))
-  )
+  (define-key eyebrowse-mode-map (kbd "<f12>") 'eyebrowse-switch-to-window-config-1)
+  (define-key eyebrowse-mode-map (kbd "<f11>") 'eyebrowse-switch-to-window-config-2)
+  (define-key eyebrowse-mode-map (kbd "<f10>") 'eyebrowse-switch-to-window-config-3)
+  (define-key eyebrowse-mode-map (kbd "<f9>") 'eyebrowse-switch-to-window-config-4)
+  (define-key eyebrowse-mode-map (kbd "<f8>") 'eyebrowse-switch-to-window-config-5)
+  (define-key eyebrowse-mode-map (kbd "<f7>") 'eyebrowse-switch-to-window-config-6)
+  (define-key eyebrowse-mode-map (kbd "<f6>") 'eyebrowse-switch-to-window-config-7))
  #+end_src
 ** Projectile
 #+begin_src emacs-lisp
@@ -1199,33 +1197,97 @@ Allow inline execution of specific babel modes.
 
 * init Windowconfig
 #+begin_src emacs-lisp
+
+
+(defvar my/mu4e-dashboard-buffer-name "mu4e-dashboard.org"
+  "Name des mu4e-dashboard Buffers. Passe das an, falls dein Dashboard anders heißt.")
+
+;; --- Display-Regel: Dashboard IMMER links ------------------------------------
+(setq display-buffer-alist
+      (cons
+       `(,(concat "\\`" (regexp-quote my/mu4e-dashboard-buffer-name) "\\'")
+         (display-buffer-in-side-window)
+         (side . left)
+         (slot . 0)
+         (window-width . 0.22)
+         (window-parameters . ((no-delete-other-windows . t)
+                               (no-other-window . nil)
+                               (mode-line-format . (" " mode-line-buffer-identification)))))
+       display-buffer-alist))
+
+;; --- Dashboard erzeugen/anzeigen ---------------------------------------------
+(defun my/mu4e-dashboard-open ()
+  "Öffne oder aktualisiere das mu4e-dashboard im linken Side-Window."
+  (interactive)
+  ;; sicherstellen, dass der Buffer existiert
+  (unless (get-buffer my/mu4e-dashboard-buffer-name)
+    ;; Dashboard initial erzeugen, aber Layout nicht zerstören
+    (save-window-excursion
+      (if (fboundp 'mu4e-dashboard)
+          (mu4e-dashboard)
+        (message "mu4e-dashboard not found"))))
+  ;; Buffer holen
+  (let ((buf (get-buffer my/mu4e-dashboard-buffer-name)))
+    (when buf
+      (let ((win (display-buffer-in-side-window
+                  buf
+                  '((side . left)
+                    (slot . 0)
+                    (window-width . 0.22)
+                    (window-parameters . ((no-delete-other-windows . t)
+                                          (no-other-window . nil))))))
+            )
+        (when (window-live-p win)
+          (set-window-dedicated-p win t))
+        win))))
+
+;; --- Mail Workspace (Slot 1) -------------------------------------------------
+(defun my/mu4e-mail-workspace ()
+  "Erstelle oder repariere das Mail-Layout (Slot 1)."
+  (interactive)
+  (eyebrowse-switch-to-window-config-1)
+  (delete-other-windows)
+  (message "Starte mu4e...")
+  (add-hook 'mu4e-main-mode-hook
+            (lambda ()
+              (message "mu4e gestartet – öffne Dashboard...")
+              (my/mu4e-dashboard-open))
+            ;; nur einmal
+            :once)
+  (mu4e)
+  (eyebrowse-rename-window-config 1 "Mail"))
+
+;; --- Hook: beim Wechsel auf Slot 1 immer Dashboard prüfen --------------------
+(defun my/eyebrowse-mail-dashboard-setup ()
+  (when (= (eyebrowse--get 'current-slot) 1)
+    (my/mu4e-dashboard-open)))
+(add-hook 'eyebrowse-post-window-switch-hook #'my/eyebrowse-mail-dashboard-setup)
+
+;;;; --- Initiales Layout (dein ursprüngliches Setup, nur robuster) ------------
+
 (defun my-initial-window-setup ()
-    ;; study lisp workspace
-    (eyebrowse-switch-to-window-config-1)
-    (eyebrowse-rename-window-config 1 "Mail")
+  ;; Slots benennen wie gehabt
+  (eyebrowse-switch-to-window-config-1)
+  (eyebrowse-rename-window-config 1 "Mail")
 
-    ;; Org
-    (eyebrowse-switch-to-window-config-2)
-    (eyebrowse-rename-window-config 2 "Org")
+  (eyebrowse-switch-to-window-config-2)
+  (eyebrowse-rename-window-config 2 "Org")
 
-    ;; Code
-    (eyebrowse-switch-to-window-config-3)
-    (eyebrowse-rename-window-config 3 "Code")
-    
-    ;; Docs
-    (eyebrowse-switch-to-window-config-4)
-    (eyebrowse-rename-window-config 4 "Docs")
-    
-    ;; Misc
-    (eyebrowse-switch-to-window-config-5)
-    (eyebrowse-rename-window-config 5 "Misc")
+  (eyebrowse-switch-to-window-config 3)
+  (eyebrowse-rename-window-config 3 "Code")
 
-    (eyebrowse-switch-to-window-config-1)
-    (delete-other-windows)
-    (mu4e)
-    (mu4e-dashboard)
-    )
+  (eyebrowse-switch-to-window-config 4)
+  (eyebrowse-rename-window-config 4 "Docs")
+
+  (eyebrowse-switch-to-window-config 5)
+  (eyebrowse-rename-window-config 5 "Misc")
+
+  (eyebrowse-switch-to-window-config-1)
+  (delete-other-windows)
+
+  ;; Statt (mu4e) + (my/mu4e-dashboard-left) direkt das robuste Setup:
+  (my/mu4e-mail-workspace))
 
 (org-toggl-set-workspace "Christoph's workspace")
-(add-hook 'window-setup-hook 'my-initial-window-setup)
+(add-hook 'emacs-startup-hook #'my-initial-window-setup)
 #+end_src
