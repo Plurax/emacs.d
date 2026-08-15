@@ -16,7 +16,7 @@
 (setq-default buffer-file-coding-system 'utf-8)
 (setq coding-system-for-read 'utf-8)
 (setq coding-system-for-write 'utf-8)
-
+krank
 
 (use-package pass)
 (auth-source-pass-enable)
@@ -216,27 +216,61 @@ Call all-the-icons-install-fonts if icons are not shown correctly in modeline.
 (global-hl-line-mode 0)
 
   #+end_src
-** default-text-scale
+** Text scaling
+ Replaced the default-text-scale package with the built-in command
+ =global-text-scale-adjust=, bound out of the box to C-x C-M-+ / C-x C-M-- /
+ C-x C-M-0. (The package's own C-M-= / C-M-- / C-M-0 were never active here,
+ because =default-text-scale-mode= was never enabled.)
+ The shorter keys are re-bound below so they now actually do something.
  #+begin_src emacs-lisp
-(use-package default-text-scale)
+(global-set-key (kbd "C-M-=") 'global-text-scale-adjust)
+(global-set-key (kbd "C-M--") 'global-text-scale-adjust)
+(global-set-key (kbd "C-M-0") 'global-text-scale-adjust)
  #+end_src
-** eyebrowse
- I am using 6 eyebrowse views which I can switch between with F7-F12 - Currently I rename them after startup to Misc, Docs, Comm, Dev, Org, Mail.
+** Workspaces (tab-bar)
+ I am using named workspaces which I switch between with F6-F12.
+ This replaces eyebrowse (archived upstream) with the built-in =tab-bar-mode=.
+
+ Note that tab-bar addresses tabs by *position*, while eyebrowse addressed them
+ by a stable slot number. To keep the eyebrowse feel, the F-keys below switch by
+ *name* and create the workspace on demand, so closing one does not shift the
+ others around.
  #+begin_src emacs-lisp
-(use-package eyebrowse
-  :ensure t
+(use-package tab-bar
+  :ensure nil ; built-in since Emacs 27
   :init
-  (setq eyebrowse-keymap-prefix (kbd "C-c M-e"))
-  (global-unset-key (kbd "C-c C-w"))
+  (setq tab-bar-show nil                  ; no visible bar, the F-keys are enough
+        tab-bar-new-tab-choice "*scratch*"
+        tab-bar-close-button-show nil
+        tab-bar-tab-hints t)
   :config
-  (eyebrowse-mode t)
-  (define-key eyebrowse-mode-map (kbd "<f12>") 'eyebrowse-switch-to-window-config-1)
-  (define-key eyebrowse-mode-map (kbd "<f11>") 'eyebrowse-switch-to-window-config-2)
-  (define-key eyebrowse-mode-map (kbd "<f10>") 'eyebrowse-switch-to-window-config-3)
-  (define-key eyebrowse-mode-map (kbd "<f9>") 'eyebrowse-switch-to-window-config-4)
-  (define-key eyebrowse-mode-map (kbd "<f8>") 'eyebrowse-switch-to-window-config-5)
-  (define-key eyebrowse-mode-map (kbd "<f7>") 'eyebrowse-switch-to-window-config-6)
-  (define-key eyebrowse-mode-map (kbd "<f6>") 'eyebrowse-switch-to-window-config-7))
+  (tab-bar-mode 1)
+  (tab-bar-history-mode 1))               ; per-tab window undo: C-c <left>/<right>
+
+(defun cu/tab-names ()
+  "Names of all existing workspaces (tabs) in the selected frame."
+  (mapcar (lambda (tb) (alist-get 'name tb)) (tab-bar-tabs)))
+
+(defun cu/switch-to-workspace (name)
+  "Switch to the workspace called NAME, creating it if it does not exist.
+This mimics `eyebrowse-switch-to-window-config', which also created the
+slot on demand instead of clamping to the existing range."
+  (interactive (list (completing-read "Workspace: " (cu/tab-names))))
+  (if (member name (cu/tab-names))
+      (tab-bar-select-tab-by-name name)
+    (tab-bar-new-tab)
+    (tab-bar-rename-tab name)))
+
+;; Same key -> same workspace as the old eyebrowse setup.
+;; NOTE: written out instead of generated in a loop - config.el is loaded with
+;; dynamic binding, so a lambda closing over a loop variable would not work.
+(global-set-key (kbd "<f12>") (lambda () (interactive) (cu/switch-to-workspace "Mail")))
+(global-set-key (kbd "<f11>") (lambda () (interactive) (cu/switch-to-workspace "Org")))
+(global-set-key (kbd "<f10>") (lambda () (interactive) (cu/switch-to-workspace "Code")))
+(global-set-key (kbd "<f9>")  (lambda () (interactive) (cu/switch-to-workspace "Docs")))
+(global-set-key (kbd "<f8>")  (lambda () (interactive) (cu/switch-to-workspace "Misc")))
+(global-set-key (kbd "<f7>")  (lambda () (interactive) (cu/switch-to-workspace "Comm")))
+(global-set-key (kbd "<f6>")  (lambda () (interactive) (cu/switch-to-workspace "Dev")))
  #+end_src
 ** Projectile
 #+begin_src emacs-lisp
@@ -262,7 +296,6 @@ Translate word at point or complete region directly via google translate API cal
 (use-package popup)
 
 (use-package google-translate
-  :after eyebrowse
   :init
   (setq google-translate-backend-method 'curl)
   (setq google-translate-default-source-language "de")
@@ -278,8 +311,7 @@ Translate word at point or complete region directly via google translate API cal
       ;; TKK='427110.1469889687'
       (list 427110 1469889687)))
   (defun google-translate--search-tkk () "Search TKK." (list 430675 2721866130))
-  (progn
-    (define-key eyebrowse-mode-map (kbd "C-c g t") 'google-translate-smooth-translate)))
+  (global-set-key (kbd "C-c g t") 'google-translate-smooth-translate))
  #+end_src
 ** mqttclient-mode
  A self made MQTT client mode.
@@ -288,17 +320,23 @@ Translate word at point or complete region directly via google translate API cal
    (load-library "mqttclient-mode.el")
 
  #+end_src
-** json-mode
+** json
+ Using the built-in =json-ts-mode= instead of the json-mode package.
+ Note: the json-mode keymap (C-c C-f beautify, C-c C-p show-path, C-c C-t
+ toggle-boolean, ...) does not exist here. =json-pretty-print-buffer= comes
+ from built-in json.el and still works.
  #+begin_src emacs-lisp
-(use-package json-mode)
- #+end_src
-** kill-ring-search
- #+begin_src emacs-lisp
-(use-package kill-ring-search)
+(use-package json-ts-mode
+  :ensure nil ; built-in
+  :mode "\\.json\\'")
  #+end_src
 ** which key
+ Built into Emacs 30
    #+begin_src emacs-lisp
-(use-package which-key)
+(use-package which-key
+  :ensure nil ; built-in since Emacs 30
+  :config
+  (which-key-mode 1))
    #+end_src
 ** plantuml
 #+begin_src emacs-lisp
@@ -355,9 +393,6 @@ Translate word at point or complete region directly via google translate API cal
   :custom
   (lsp-ui-peek-always-show t)
   (lsp-ui-sideline-show-hover t))
-
-
-(setq lsp-prefer-flymake nil)
 
 (use-package exec-path-from-shell
   :defer t
@@ -454,11 +489,14 @@ Translate word at point or complete region directly via google translate API cal
   )
 #+end_src
 
-* dockerfile-mode
+* dockerfile
+Using the built-in =dockerfile-ts-mode=. Note this drops the build commands of
+the dockerfile-mode package (C-c C-b dockerfile-build-buffer, C-c M-b
+dockerfile-build-no-cache-buffer) - the docker package (C-c d) covers builds.
 #+begin_src emacs-lisp
-(use-package dockerfile-mode
-  :mode "Dockerfile.*\\'"
-  )
+(use-package dockerfile-ts-mode
+  :ensure nil ; built-in
+  :mode "\\(?:Dockerfile\\|\\.dockerfile\\)\\'")
 #+end_src
 * flycheck etc.
 ** Flycheck
@@ -468,7 +506,9 @@ Translate word at point or complete region directly via google translate API cal
   )
 
 (setq js-indent-level 2)
-(flycheck-add-mode 'javascript-eslint 'ts-ts-mode)
+(flycheck-add-mode 'javascript-eslint 'typescript-ts-mode)
+(flycheck-add-mode 'javascript-eslint 'tsx-ts-mode)
+(flycheck-add-mode 'javascript-eslint 'vue-ts-mode)
 
  #+end_src
 ** flycheck-color-mode-line
@@ -510,18 +550,17 @@ Translate word at point or complete region directly via google translate API cal
 
 (use-package embark
   :ensure t
-  :bind
-  (("C-." . embark-act)
-   ("C-;" . embark-dwim)
-   ("C-h B" . embark-bindings)))
-(use-package embark
   :defer t
   :commands (embark-act
              embark-dwim
              embark-export
              embark-collect
              embark-bindings
-             embark-prefix-help-command))
+             embark-prefix-help-command)
+  :bind
+  (("C-." . embark-act)
+   ("C-;" . embark-dwim)
+   ("C-h B" . embark-bindings)))
 
 (use-package embark-consult
   :ensure t
@@ -531,6 +570,11 @@ Translate word at point or complete region directly via google translate API cal
 (use-package consult
   :defer t
   :hook (completion-list-mode . consult-preview-at-point-mode)
+  :bind (("M-y"   . consult-yank-pop)      ; replaces kill-ring-search
+         ("M-s r" . consult-ripgrep)       ; replaces ag
+         ("M-s g" . consult-grep)
+         ("M-s l" . consult-line)
+         ("C-x b" . consult-buffer))
   :init
   ;; Enhance register preview with thin lines and no mode line.
   (advice-add #'register-preview :override #'consult-register-window)
@@ -607,10 +651,10 @@ Translate word at point or complete region directly via google translate API cal
 
 (use-package markdown-toc)
 #+end_src
-* ag
-#+begin_src emacs-lisp
-(use-package ag)
-#+end_src
+* Searching
+Replaced the ag package with =consult-ripgrep= Bindings live in the consult section:
+=M-s r= project-wide ripgrep, =M-s g= grep, =M-y= kill-ring browser
+(replaces the kill-ring-search package).
 * Git handling
 Magit is the incredible git client within emacs!
 Whenever in a repo - press =C-x g= to get a separate status buffer.
@@ -662,7 +706,7 @@ Whenever in a repo - press =C-x g= to get a separate status buffer.
 
 ; prettify json responses in verb buffers
 (defun verb-json-response-mode-hook ()
-              (json-mode)
+              (json-ts-mode)
               (json-pretty-print-buffer))
 
 (use-package org
@@ -734,13 +778,10 @@ Whenever in a repo - press =C-x g= to get a separate status buffer.
                                            (#1# "capt-of" nil) (#1# "hyperref" nil)))
   )
 
-(use-package org-ai)
+;; NOTE: org-ai, org-roam, org-roam-ui, org-superstar and org-super-agenda are
+;; configured in their own sections further below
 (use-package org-journal)
 (use-package org-msg)
-(use-package org-roam)
-(use-package org-roam-ui)
-(use-package org-superstar)
-(use-package org-super-agenda)
  #+end_src
 ** org-toggl
  #+begin_src emacs-lisp
@@ -998,6 +1039,7 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
 
 #+begin_src emacs-lisp
 (use-package ibuffer
+  :ensure nil ; built-in
   :bind ("C-x C-b" . 'ibuffer)
   :config
   ;; Define IBuffer filter modes.
@@ -1018,6 +1060,7 @@ http://stackoverflow.com/questions/1231188/emacs-list-buffers-behavior
             '(lambda ()
                (ibuffer-switch-to-saved-filter-groups "home")))
   )
+#+end_src
 
 * Latex
 
@@ -1200,9 +1243,9 @@ Allow inline execution of specific babel modes.
 
 
 (defvar my/mu4e-dashboard-buffer-name "mu4e-dashboard.org"
-  "Name des mu4e-dashboard Buffers. Passe das an, falls dein Dashboard anders heißt.")
+  "Name of mu4e-dashboard buffer. (customize if necessary)")
 
-;; --- Display-Regel: Dashboard IMMER links ------------------------------------
+;; --- Display-rule: Dashboard always left ------------------------------------
 (setq display-buffer-alist
       (cons
        `(,(concat "\\`" (regexp-quote my/mu4e-dashboard-buffer-name) "\\'")
@@ -1215,18 +1258,18 @@ Allow inline execution of specific babel modes.
                                (mode-line-format . (" " mode-line-buffer-identification)))))
        display-buffer-alist))
 
-;; --- Dashboard erzeugen/anzeigen ---------------------------------------------
+;; --- show/create Dashboard  ---------------------------------------------
 (defun my/mu4e-dashboard-open ()
-  "Öffne oder aktualisiere das mu4e-dashboard im linken Side-Window."
+  "Open or update mu4e-dashboard in side-window."
   (interactive)
-  ;; sicherstellen, dass der Buffer existiert
+  ;; assure buffer exists
   (unless (get-buffer my/mu4e-dashboard-buffer-name)
-    ;; Dashboard initial erzeugen, aber Layout nicht zerstören
+    ;; initial create dashboard, but do not kill layout
     (save-window-excursion
       (if (fboundp 'mu4e-dashboard)
           (mu4e-dashboard)
         (message "mu4e-dashboard not found"))))
-  ;; Buffer holen
+  ;; get buffer
   (let ((buf (get-buffer my/mu4e-dashboard-buffer-name)))
     (when buf
       (let ((win (display-buffer-in-side-window
@@ -1241,51 +1284,42 @@ Allow inline execution of specific babel modes.
           (set-window-dedicated-p win t))
         win))))
 
-;; --- Mail Workspace (Slot 1) -------------------------------------------------
+;; --- Mail Workspace ----------------------------------------------------------
 (defun my/mu4e-mail-workspace ()
-  "Erstelle oder repariere das Mail-Layout (Slot 1)."
+  "Create of repair mail layout in workspace \"Mail\"."
   (interactive)
-  (eyebrowse-switch-to-window-config-1)
+  (cu/switch-to-workspace "Mail")
   (delete-other-windows)
-  (message "Starte mu4e...")
+  (message "Starting mu4e...")
   (add-hook 'mu4e-main-mode-hook
             (lambda ()
-              (message "mu4e gestartet – öffne Dashboard...")
+              (message "mu4e startet – opening dashboard...")
               (my/mu4e-dashboard-open))
             ;; nur einmal
             :once)
-  (mu4e)
-  (eyebrowse-rename-window-config 1 "Mail"))
+  (mu4e))
 
-;; --- Hook: beim Wechsel auf Slot 1 immer Dashboard prüfen --------------------
-(defun my/eyebrowse-mail-dashboard-setup ()
-  (when (= (eyebrowse--get 'current-slot) 1)
+;; --- Hook: Changing to "Mail" -> check dashboard --------------------
+(defun my/mail-workspace-dashboard-setup (&rest _)
+  "Re-open the mu4e dashboard whenever the \"Mail\" workspace is selected."
+  (when (equal (alist-get 'name (tab-bar--current-tab)) "Mail")
     (my/mu4e-dashboard-open)))
-(add-hook 'eyebrowse-post-window-switch-hook #'my/eyebrowse-mail-dashboard-setup)
+(add-hook 'tab-bar-tab-post-select-functions #'my/mail-workspace-dashboard-setup)
 
-;;;; --- Initiales Layout (dein ursprüngliches Setup, nur robuster) ------------
+;;;; --- Initiales Layout ------------------------------------------------------
 
 (defun my-initial-window-setup ()
-  ;; Slots benennen wie gehabt
-  (eyebrowse-switch-to-window-config-1)
-  (eyebrowse-rename-window-config 1 "Mail")
+  ;; Rename startiong tab to "Mail"
+  (tab-bar-rename-tab "Mail")
+  ;; create and rename the remaining ones 
+  (cu/switch-to-workspace "Org")
+  (cu/switch-to-workspace "Code")
+  (cu/switch-to-workspace "Docs")
+  (cu/switch-to-workspace "Misc")
 
-  (eyebrowse-switch-to-window-config-2)
-  (eyebrowse-rename-window-config 2 "Org")
-
-  (eyebrowse-switch-to-window-config 3)
-  (eyebrowse-rename-window-config 3 "Code")
-
-  (eyebrowse-switch-to-window-config 4)
-  (eyebrowse-rename-window-config 4 "Docs")
-
-  (eyebrowse-switch-to-window-config 5)
-  (eyebrowse-rename-window-config 5 "Misc")
-
-  (eyebrowse-switch-to-window-config-1)
+  (cu/switch-to-workspace "Mail")
   (delete-other-windows)
 
-  ;; Statt (mu4e) + (my/mu4e-dashboard-left) direkt das robuste Setup:
   (my/mu4e-mail-workspace))
 
 (org-toggl-set-workspace "Christoph's workspace")
